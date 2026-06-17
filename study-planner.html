@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>医学学習プランナー</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg:#0f1117; --surface:#181c27; --surface2:#1f2437; --border:#2a3050;
+  --accent:#f59e0b; --text:#e2e8f0; --text-muted:#64748b; --text-dim:#94a3b8;
+  --danger:#f87171; --success:#4ade80;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;font-size:14px;}
+
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,#6ee7b7,#a78bfa);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;}
+.logo-text{font-size:14px;font-weight:700;}
+.logo-sub{font-size:10px;color:var(--text-muted);}
+.next-exam{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 13px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);display:flex;align-items:center;gap:5px;}
+
+main{max-width:840px;margin:0 auto;padding:18px 14px 80px;}
+
+/* SECTION TITLES */
+.sec{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text-muted);text-transform:uppercase;margin:26px 0 10px;display:flex;align-items:center;gap:6px;}
+.sec svg{opacity:.6;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;}
+.stat-label{font-size:10px;color:var(--text-muted);margin-bottom:4px;display:flex;align-items:center;gap:4px;}
+.stat-value{font-size:20px;font-weight:700;font-family:'DM Mono',monospace;}
+.stat-sub{font-size:9px;color:var(--text-dim);margin-top:2px;}
+
+/* INPUTS */
+select,input[type=number],input[type=text],input[type=date]{
+  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:13px;
+  padding:6px 10px;outline:none;transition:border-color .15s;
+}
+select:focus,input:focus{border-color:var(--accent);}
+select{flex:1;min-width:110px;}
+input[type=number]{width:70px;}
+input[type=text]{flex:1;min-width:140px;}
+input[type=date]{flex:1;}
+.form-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+
+/* BUTTONS */
+.btn{background:var(--accent);color:#000;border:none;border-radius:8px;padding:6px 14px;font-weight:700;font-size:13px;cursor:pointer;transition:opacity .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;}
+.btn:hover{opacity:.85;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim);}
+.btn-ghost:hover{border-color:var(--text-dim);}
+.btn-blue{background:#60a5fa;color:#000;}
+.btn-red{background:transparent;border:1px solid var(--border);color:var(--danger);}
+.btn-red:hover{border-color:var(--danger);}
+.btn-sm{padding:4px 10px;font-size:11px;border-radius:6px;}
+.btn-xs{padding:3px 7px;font-size:10px;border-radius:5px;}
+
+/* ALLOCATION */
+.alloc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:6px;}
+.alloc-bars{display:flex;flex-direction:column;gap:9px;margin-bottom:12px;}
+.alloc-row{display:flex;align-items:center;gap:10px;}
+.alloc-label{font-size:11px;font-weight:600;width:72px;flex-shrink:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.alloc-sub{font-size:9px;color:var(--text-muted);font-family:'DM Mono',monospace;}
+.alloc-bar-bg{flex:1;height:9px;background:var(--border);border-radius:5px;overflow:hidden;}
+.alloc-bar-fill{height:100%;border-radius:5px;transition:width .5s;}
+.alloc-pct{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);width:32px;text-align:right;flex-shrink:0;}
+.alloc-reason{font-size:10px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:10px;line-height:1.7;}
+
+/* TODAY PLAN */
+.plan-input-row{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.plan-loading{display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:10px 0;}
+.spinner{width:15px;height:15px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.plan-tasks{display:flex;flex-direction:column;gap:7px;}
+.plan-task{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;display:flex;align-items:flex-start;gap:10px;}
+.plan-task-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.plan-task-title{font-size:13px;font-weight:600;margin-bottom:3px;}
+.plan-task-detail{font-size:11px;color:var(--text-muted);line-height:1.5;}
+.plan-task-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);margin-top:3px;}
+.plan-empty{font-size:12px;color:var(--text-muted);padding:10px 0;}
+
+/* SUBJECTS GRID */
+.subjects-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.subject-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.subject-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.subject-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.subject-name{font-size:13px;font-weight:700;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.subject-tags{display:flex;gap:4px;align-items:center;flex-shrink:0;}
+.tag{font-size:9px;padding:1px 5px;border-radius:4px;border:1px solid var(--border);color:var(--text-muted);}
+.tag-exam{color:var(--accent);border-color:rgba(245,158,11,.4);}
+.subject-exam-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:6px 8px;background:var(--surface2);border-radius:7px;}
+.subject-exam-label{font-size:10px;color:var(--text-muted);flex-shrink:0;display:flex;align-items:center;gap:3px;}
+.subject-exam-input{flex:1;font-size:11px;padding:3px 7px;}
+.subject-exam-days{font-family:'DM Mono',monospace;font-size:10px;flex-shrink:0;white-space:nowrap;}
+.subject-progress-wrap{height:4px;background:var(--border);border-radius:2px;margin-bottom:6px;overflow:hidden;}
+.subject-progress-fill{height:100%;border-radius:2px;transition:width .4s;}
+.progress-label{font-size:9px;color:var(--text-muted);margin-bottom:8px;font-family:'DM Mono',monospace;}
+.topic-list{display:flex;flex-direction:column;gap:4px;}
+.topic-item{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:6px;cursor:pointer;transition:background .12s;}
+.topic-item:hover{background:var(--surface2);}
+.topic-check{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .15s;}
+.topic-item.done .topic-check{border-color:var(--success);background:var(--success);color:#000;}
+.topic-item.weak .topic-check{border-color:var(--danger);background:var(--danger);color:#fff;}
+.topic-text{font-size:11px;color:var(--text-dim);flex:1;}
+.topic-item.done .topic-text{color:var(--text-muted);text-decoration:line-through;}
+.topic-item.weak .topic-text{color:var(--danger);}
+.topic-weak-btn{font-size:9px;padding:1px 5px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .12s;white-space:nowrap;}
+.topic-weak-btn:hover{border-color:var(--danger);color:var(--danger);}
+.topic-item.weak .topic-weak-btn{border-color:var(--success);color:var(--success);}
+.topic-del-btn{font-size:10px;padding:1px 4px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;opacity:.4;}
+.topic-del-btn:hover{opacity:1;color:var(--danger);}
+.add-topic-row{display:flex;gap:5px;margin-top:8px;}
+.add-topic-row input{flex:1;font-size:11px;padding:4px 8px;}
+
+/* SUBJECT SETTINGS */
+.subj-settings-grid{display:flex;flex-direction:column;gap:8px;}
+.subj-setting-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border-radius:9px;flex-wrap:wrap;}
+.subj-setting-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0;}
+.subj-setting-name{font-size:13px;font-weight:600;flex:1;min-width:80px;}
+.subj-setting-meta{font-size:10px;color:var(--text-muted);}
+.color-picker{width:32px;height:28px;padding:2px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);cursor:pointer;}
+
+/* EMOJI PICKER */
+.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:6px;}
+.emoji-btn{background:var(--surface2);border:2px solid transparent;border-radius:7px;font-size:18px;padding:5px;cursor:pointer;transition:all .12s;text-align:center;line-height:1;}
+.emoji-btn:hover{background:var(--border);}
+.emoji-btn.selected{border-color:var(--accent);}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;}
+.modal-title{font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:7px;}
+.modal-row{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
+.modal-label{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px;}
+.modal-row input,.modal-row select{width:100%;}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+
+/* LOG */
+.log-list{display:flex;flex-direction:column;gap:7px;}
+.log-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 13px;display:flex;align-items:flex-start;gap:10px;}
+.log-icon{font-size:16px;width:24px;text-align:center;flex-shrink:0;margin-top:1px;}
+.log-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;white-space:nowrap;margin-top:2px;border:1px solid transparent;}
+.log-title{font-size:13px;font-weight:500;}
+.log-meta{font-size:10px;color:var(--text-muted);margin-top:3px;font-family:'DM Mono',monospace;}
+.log-delete{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:0 3px;opacity:.4;transition:opacity .12s;margin-left:auto;}
+.log-delete:hover{opacity:1;color:var(--danger);}
+.empty-state{text-align:center;padding:24px;color:var(--text-muted);font-size:12px;}
+
+@media(max-width:500px){.subjects-grid{grid-template-columns:1fr;}.stats-row{grid-template-columns:repeat(3,1fr);}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🔬</div>
+    <div>
+      <div class="logo-text">MedStudy Planner</div>
+      <div class="logo-sub" id="headerSub">科目を追加して始めよう</div>
+    </div>
+  </div>
+  <div class="next-exam" id="nextExamBadge">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    <span>次の試験: —</span>
+  </div>
+</header>
+
+<main>
+
+<!-- STATS -->
+<div class="sec">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+  進捗サマリー
+</div>
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      最短試験まで
+    </div>
+    <div class="stat-value" style="color:var(--accent)" id="daysLeft">—</div>
+    <div class="stat-sub">日後</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      累計記録
+    </div>
+    <div class="stat-value" style="color:#6ee7b7" id="totalSessions">0</div>
+    <div class="stat-sub">セッション</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      累計時間
+    </div>
+    <div class="stat-value" style="color:#a78bfa" id="totalHours">0</div>
+    <div class="stat-sub">時間</div>
+  </div>
+</div>
+
+<!-- ALLOCATION -->
+<div class="sec">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+  推奨学習配分
+</div>
+<div class="card">
+  <div class="alloc-header">
+    <span style="font-size:11px;color:var(--text-dim)">残り日数・苦手トピック・進捗から自動計算</span>
+    <button class="btn btn-ghost btn-sm" onclick="renderAllocation()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      再計算
+    </button>
+  </div>
+  <div class="alloc-bars" id="allocBars"><div class="plan-empty">科目を追加すると配分が表示されます。</div></div>
+  <div class="alloc-reason" id="allocReason" style="display:none"></div>
+</div>
+
+<!-- TODAY PLAN -->
+<div class="sec">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+  今日のやること提案
+</div>
+<div class="card">
+  <div class="plan-input-row">
+    <span style="font-size:12px;color:var(--text-dim)">今日の学習時間：</span>
+    <input type="number" id="planHours" min=".5" max="12" step=".5" value="3" style="width:62px">
+    <span style="font-size:11px;color:var(--text-muted)">時間</span>
+    <button class="btn btn-blue" onclick="generatePlan()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+      AIで提案
+    </button>
+  </div>
+  <div id="planOutput"><div class="plan-empty">上のボタンを押すと今日のスケジュールをAIが提案します。</div></div>
+</div>
+
+<!-- LOG -->
+<div class="sec">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+  学習を記録
+</div>
+<div class="card">
+  <div style="margin-bottom:12px;font-size:12px;color:var(--text-dim)" id="todayDate"></div>
+  <div style="display:flex;flex-direction:column;gap:9px;">
+    <div class="form-row">
+      <select id="logSubject"></select>
+      <input type="number" id="logHours" min=".5" max="12" step=".5" value="1">
+      <span style="font-size:11px;color:var(--text-muted)">時間</span>
+    </div>
+    <div class="form-row">
+      <input type="text" id="logTopic" placeholder="学習した内容（例：炎症の分類）">
+      <button class="btn" onclick="addLog()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        追加
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- SUBJECTS -->
+<div class="sec">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+  トピック習熟度
+</div>
+<div class="subjects-grid" id="subjectsGrid">
+  <div class="empty-state" style="grid-column:1/-1">下の「設定」から科目を追加してください。</div>
+</div>
+
+<!-- LOG HISTORY -->
+<div class="sec">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+  学習記録
+</div>
+<div class="log-list" id="logList">
+  <div class="empty-state">まだ記録がありません。</div>
+</div>
+
+<!-- SETTINGS -->
+<div class="sec">
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 1.41 1.41M4.93 4.93a10 10 0 0 0-1.41 1.41M19.07 19.07a10 10 0 0 0 1.41-1.41M4.93 19.07a10 10 0 0 1-1.41-1.41M22 12h-1M3 12H2M12 22v-1M12 3V2"/></svg>
+  設定 — 科目管理
+</div>
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+    <span style="font-size:12px;color:var(--text-dim)">科目一覧</span>
+    <button class="btn btn-sm" onclick="openAddSubject()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      科目を追加
+    </button>
+  </div>
+  <div class="subj-settings-grid" id="subjSettingsGrid">
+    <div class="empty-state">科目がありません。</div>
+  </div>
+  <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;">
+    <button class="btn btn-red btn-sm" onclick="clearAll()">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+      データ全削除
+    </button>
+  </div>
+</div>
+
+</main>
+
+<!-- ADD SUBJECT MODAL -->
+<div class="modal-overlay" id="modalOverlay" style="display:none" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      科目を追加
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        科目名 *
+      </div>
+      <input type="text" id="newSubjName" placeholder="例：生理学、英語論文読解">
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        試験あり？
+      </div>
+      <select id="newSubjExam">
+        <option value="1">あり（試験科目として配分を優先）</option>
+        <option value="0">なし（追加学習として低め配分）</option>
+      </select>
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        試験日（任意）
+      </div>
+      <input type="date" id="newSubjDate">
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">🎨 アイコン（絵文字）</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+        <span id="selectedEmojiPreview" style="font-size:24px;width:36px;text-align:center;background:var(--surface2);border-radius:8px;padding:4px;">🔬</span>
+        <span style="font-size:11px;color:var(--text-muted)">← 選択中のアイコン</span>
+      </div>
+      <div class="emoji-grid" id="emojiGrid"></div>
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">🎨 テーマカラー</div>
+      <input type="color" class="color-picker" id="newSubjColor" value="#6ee7b7" style="width:100%;height:36px;">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">キャンセル</button>
+      <button class="btn btn-sm" onclick="addSubject()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        追加
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── EMOJI LIST ───
+const EMOJIS = [
+  '🔬','🧬','💊','🧠','🫀','🫁','🦷','🦴','🩺','🏥',
+  '📖','📝','✏️','📚','🗒️','📋','🔭','⚗️','🧪','🧫',
+  '💉','🩻','🩹','🧬','🔩','⚕️','🌡️','🧲','💡','🎯',
+  '🌱','🐛','🦠','🐾','🌊','⚡','🔥','❄️','🌀','✨',
+];
+let selectedEmoji = '🔬';
+
+function buildEmojiGrid() {
+  const grid = document.getElementById('emojiGrid');
+  grid.innerHTML = EMOJIS.map(e =>
+    `<button class="emoji-btn${e===selectedEmoji?' selected':''}" onclick="selectEmoji('${e}')">${e}</button>`
+  ).join('');
+}
+function selectEmoji(e) {
+  selectedEmoji = e;
+  document.getElementById('selectedEmojiPreview').textContent = e;
+  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.toggle('selected', b.textContent===e));
+}
+
+// ─── PALETTE ───
+const PALETTE = ['#6ee7b7','#a78bfa','#60a5fa','#fb923c','#f472b6','#facc15','#34d399','#f87171','#38bdf8','#c084fc'];
+let paletteIdx = 0;
+
+// ─── DEFAULT SUBJECT EMOJIS ───
+const DEFAULT_EMOJIS = { path:'🔬', pharm:'💊', gene:'🧬', extra:'📖' };
+
+// ─── STATE ───
+const STORE_KEY = 'medplanner_v5';
+let state = JSON.parse(localStorage.getItem(STORE_KEY) || 'null') || {
+  subjects: [
+    { key:'path',  label:'病理学', emoji:'🔬', hex:'#6ee7b7', exam:true,  examDate:null, topics:[
+      {id:1,name:'炎症の基礎',status:'none'},{id:2,name:'腫瘍の分類・良悪性',status:'none'},
+      {id:3,name:'壊死・変性',status:'none'},{id:4,name:'循環障害（梗塞・浮腫）',status:'none'},
+      {id:5,name:'免疫疾患・自己免疫',status:'none'},{id:6,name:'感染症の病理',status:'none'},{id:7,name:'修復・再生',status:'none'}
+    ]},
+    { key:'pharm', label:'薬理学', emoji:'💊', hex:'#a78bfa', exam:true,  examDate:null, topics:[
+      {id:101,name:'薬物動態（ADME）',status:'none'},{id:102,name:'自律神経薬',status:'none'},
+      {id:103,name:'循環器薬（降圧・心不全）',status:'none'},{id:104,name:'抗菌薬・抗生物質',status:'none'},
+      {id:105,name:'中枢神経作用薬',status:'none'},{id:106,name:'抗炎症・免疫抑制薬',status:'none'},{id:107,name:'抗がん薬の概要',status:'none'}
+    ]},
+    { key:'gene',  label:'遺伝学', emoji:'🧬', hex:'#60a5fa', exam:true,  examDate:null, topics:[
+      {id:201,name:'メンデル遺伝の法則',status:'none'},{id:202,name:'DNA複製と修復',status:'none'},
+      {id:203,name:'転写・翻訳',status:'none'},{id:204,name:'染色体異常（数・構造）',status:'none'},
+      {id:205,name:'多因子遺伝と疾患',status:'none'},{id:206,name:'遺伝子検査・診断',status:'none'}
+    ]},
+    { key:'extra', label:'追加学習', emoji:'📖', hex:'#fb923c', exam:false, examDate:null, topics:[
+      {id:301,name:'臨床実習予習',status:'none'},{id:302,name:'英語論文読解',status:'none'}
+    ]},
+  ],
+  logs: [],
+};
+let nextId = 500;
+
+function save() { localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+function subj(key) { return state.subjects.find(s => s.key === key); }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ─── DAYS UNTIL ───
+function daysUntil(dateStr) {
+  if (!dateStr) return null;
+  const t = new Date(); t.setHours(0,0,0,0);
+  return Math.ceil((new Date(dateStr) - t) / 86400000);
+}
+function nearestExam() {
+  const ds = state.subjects.map(s => daysUntil(s.examDate)).filter(d => d !== null && d >= 0);
+  return ds.length ? Math.min(...ds) : null;
+}
+
+// ─── HEADER / STATS ───
+function renderHeader() {
+  const min = nearestExam();
+  const examSubjs = state.subjects.filter(s => s.exam && s.examDate && daysUntil(s.examDate) >= 0);
+  const nearest = examSubjs.sort((a,b)=>daysUntil(a.examDate)-daysUntil(b.examDate))[0];
+  document.getElementById('nextExamBadge').querySelector('span').textContent =
+    nearest ? `次: ${nearest.emoji} ${nearest.label} ${daysUntil(nearest.examDate)}日後` : '試験日未設定';
+  document.getElementById('daysLeft').textContent = min !== null ? min : '—';
+  document.getElementById('headerSub').textContent =
+    state.subjects.map(s => `${s.emoji} ${s.label}`).join('  ') || '科目を追加して始めよう';
+}
+function renderStats() {
+  document.getElementById('totalSessions').textContent = state.logs.length;
+  const h = state.logs.reduce((s,l)=>s+l.hours,0);
+  document.getElementById('totalHours').textContent = h%1===0?h:h.toFixed(1);
+}
+
+// ─── ALLOCATION ───
+function calcAllocation() {
+  const keys = state.subjects.map(s=>s.key);
+  const base = {};
+  keys.forEach(k => {
+    const s = subj(k);
+    base[k] = s.exam ? 28 : 10;
+    base[k] += s.topics.filter(t=>t.status==='weak').length * 6;
+    const days = daysUntil(s.examDate);
+    if (days !== null) {
+      if (days <= 3)       base[k] += s.exam ? 30 : 0;
+      else if (days <= 7)  base[k] += s.exam ? 18 : 0;
+      else if (days <= 14) base[k] += s.exam ? 8  : 0;
+    }
+    const done = s.topics.filter(t=>t.status==='done').length;
+    const pct  = s.topics.length ? done/s.topics.length : 0;
+    base[k] = Math.max(s.exam ? 8 : 3, base[k] * (1 - pct*0.35));
+  });
+  const total = Object.values(base).reduce((a,b)=>a+b,0)||1;
+  const result = {};
+  keys.forEach(k => { result[k] = Math.round(base[k]/total*100); });
+  const sum = Object.values(result).reduce((a,b)=>a+b,0);
+  if (keys.length) result[keys[0]] += (100-sum);
+  return result;
+}
+
+function renderAllocation() {
+  if (!state.subjects.length) {
+    document.getElementById('allocBars').innerHTML = '<div class="plan-empty">科目を追加すると配分が表示されます。</div>';
+    document.getElementById('allocReason').style.display='none';
+    return;
+  }
+  const alloc = calcAllocation();
+  document.getElementById('allocBars').innerHTML = state.subjects.map(s => {
+    const pct = alloc[s.key]||0;
+    const days = daysUntil(s.examDate);
+    const sub = days !== null ? `試験${days}日前` : s.exam ? '試験日未設定' : '試験外';
+    return `<div class="alloc-row">
+      <div style="width:88px;flex-shrink:0">
+        <div class="alloc-label" style="color:${s.hex}">${s.emoji} ${esc(s.label)}</div>
+        <div class="alloc-sub">${sub}</div>
+      </div>
+      <div class="alloc-bar-bg"><div class="alloc-bar-fill" style="width:${pct}%;background:${s.hex}"></div></div>
+      <span class="alloc-pct">${pct}%</span>
+    </div>`;
+  }).join('');
+
+  const reasons = [];
+  state.subjects.forEach(s => {
+    const w = s.topics.filter(t=>t.status==='weak').length;
+    const d = daysUntil(s.examDate);
+    if (d !== null && d <= 7 && s.exam) reasons.push(`${s.emoji}${s.label}は試験${d}日前のため最優先。`);
+    if (w > 0) reasons.push(`${s.emoji}${s.label}に苦手${w}項目→配分を増加。`);
+  });
+  const doneHigh = state.subjects.filter(s=>{const t=s.topics;return t.length&&t.filter(x=>x.status==='done').length/t.length>=.7;});
+  if (doneHigh.length) reasons.push(`${doneHigh.map(s=>s.emoji+s.label).join('・')}は進捗良好のため比重を低減。`);
+  if (!reasons.length) reasons.push('標準配分です。苦手トピック登録・試験日設定で自動調整されます。');
+  const el = document.getElementById('allocReason');
+  el.textContent = reasons.join(' ');
+  el.style.display = '';
+}
+
+// ─── AI PLAN ───
+async function generatePlan() {
+  const hours = parseFloat(document.getElementById('planHours').value)||3;
+  if (!state.subjects.length) { alert('先に科目を追加してください。'); return; }
+  const alloc = calcAllocation();
+  const topicSummary = state.subjects.map(s => {
+    const weak = s.topics.filter(t=>t.status==='weak').map(t=>t.name);
+    const rem  = s.topics.filter(t=>t.status!=='done').map(t=>t.name);
+    const days = daysUntil(s.examDate);
+    return `【${s.label}】配分${alloc[s.key]}%｜試験まで${days!==null?days+'日':'未設定'}｜未完了:${rem.join('、')||'なし'}｜苦手:${weak.join('、')||'なし'}`;
+  }).join('\n');
+  const subjectKeys = state.subjects.map(s=>`"${s.key}"`).join('|');
+  const prompt = `あなたは医学生の学習コーチです。以下の情報を元に今日の学習計画を提案してください。
+今日の学習可能時間: ${hours}時間
+各科目の状況:
+${topicSummary}
+3〜5項目のタスクリストをJSON形式のみで返してください（前置き・説明文・backtick不要）:
+[{"subject":"${subjectKeys}のいずれか","title":"タスク名（具体的に）","detail":"学習方法や注意点（1〜2文）","minutes":数字}]
+合計minutesを${Math.round(hours*60)}分にしてください。苦手トピック・試験が近い科目を優先してください。`;
+  const out = document.getElementById('planOutput');
+  out.innerHTML = `<div class="plan-loading"><div class="spinner"></div>AIがプランを考えています…</div>`;
+  try {
+    const res  = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const data = await res.json();
+    const raw  = data.content.map(c=>c.text||'').join('');
+    const tasks= JSON.parse(raw.replace(/```json|```/g,'').trim());
+    if(!Array.isArray(tasks)||!tasks.length) throw new Error();
+    out.innerHTML = '<div class="plan-tasks">'+tasks.map(t=>{
+      const s = subj(t.subject) || state.subjects[0];
+      const hr= t.minutes>=60?`${Math.floor(t.minutes/60)}時間${t.minutes%60?(t.minutes%60)+'分':''}`:`${t.minutes}分`;
+      return `<div class="plan-task">
+        <div class="plan-task-icon" style="background:${s.hex}22">${s.emoji}</div>
+        <div>
+          <div class="plan-task-title">${esc(t.title)}</div>
+          <div class="plan-task-detail">${esc(t.detail)}</div>
+          <div class="plan-task-time">${esc(s.emoji)} ${esc(s.label)} · ${hr}</div>
+        </div>
+      </div>`;
+    }).join('')+'</div>';
+  } catch(e) {
+    out.innerHTML = `<div class="plan-empty" style="color:var(--danger)">プランの生成に失敗しました。もう一度お試しください。</div>`;
+  }
+}
+
+// ─── LOGS ───
+function refreshLogSubjectSelect() {
+  const sel = document.getElementById('logSubject');
+  const cur = sel.value;
+  sel.innerHTML = state.subjects.map(s=>`<option value="${s.key}"${s.key===cur?' selected':''}>${s.emoji} ${esc(s.label)}</option>`).join('');
+}
+function addLog() {
+  const subject = document.getElementById('logSubject').value;
+  const hours   = parseFloat(document.getElementById('logHours').value)||1;
+  const topic   = document.getElementById('logTopic').value.trim()||'（メモなし）';
+  const s = subj(subject); if(!s) return;
+  const now = new Date();
+  state.logs.unshift({id:Date.now(),subject,hours,topic,hex:s.hex,emoji:s.emoji,label:s.label,
+    date:now.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'}),
+    time:now.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})});
+  document.getElementById('logTopic').value='';
+  save(); renderLogs(); renderStats();
+}
+function deleteLog(id) { state.logs=state.logs.filter(l=>l.id!==id); save(); renderLogs(); renderStats(); }
+function renderLogs() {
+  const c=document.getElementById('logList');
+  if(!state.logs.length){c.innerHTML='<div class="empty-state">まだ記録がありません。</div>';return;}
+  c.innerHTML=state.logs.map(l=>`
+    <div class="log-item">
+      <div class="log-icon">${l.emoji||'📖'}</div>
+      <div style="flex:1">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+          <span class="log-badge" style="background:${l.hex}22;color:${l.hex};border-color:${l.hex}55">${esc(l.label||l.subject)}</span>
+        </div>
+        <div class="log-title">${esc(l.topic)}</div>
+        <div class="log-meta">${l.date} ${l.time} · ${l.hours}時間</div>
+      </div>
+      <button class="log-delete" onclick="deleteLog(${l.id})" title="削除">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`).join('');
+}
+
+// ─── TOPICS ───
+function addTopic(key) {
+  const inp=document.getElementById(`new_${key}`); if(!inp) return;
+  const name=inp.value.trim(); if(!name) return;
+  const s=subj(key); if(!s) return;
+  s.topics.push({id:nextId++,name,status:'none'});
+  inp.value=''; save(); renderSubject(key); renderAllocation();
+}
+function delTopic(key,id) {
+  const s=subj(key); if(!s) return;
+  s.topics=s.topics.filter(t=>t.id!==id);
+  save(); renderSubject(key); renderAllocation();
+}
+function toggleDone(key,id) {
+  const s=subj(key); if(!s) return;
+  const t=s.topics.find(t=>t.id===id); if(!t) return;
+  t.status=t.status==='done'?'none':'done';
+  save(); renderSubject(key); renderAllocation();
+}
+function toggleWeak(key,id) {
+  const s=subj(key); if(!s) return;
+  const t=s.topics.find(t=>t.id===id); if(!t) return;
+  t.status=t.status==='weak'?'none':'weak';
+  save(); renderSubject(key); renderAllocation();
+}
+function saveExamDate(key) {
+  const s=subj(key); if(!s) return;
+  const val=document.getElementById(`examdate_${key}`)?.value||null;
+  s.examDate=val||null; save(); renderSubject(key); renderHeader(); renderAllocation();
+}
+
+function renderSubject(key) {
+  const s=subj(key); if(!s) return;
+  const el=document.getElementById(`subj_${key}`); if(!el) return;
+  const done=s.topics.filter(t=>t.status==='done').length;
+  const pct=s.topics.length?Math.round(done/s.topics.length*100):0;
+  const days=daysUntil(s.examDate);
+  const daysLabel=days!==null?(days>0?`試験${days}日後`:'🔔 試験当日！'):'未設定';
+  const daysColor=days!==null&&days<=7?'var(--danger)':days!==null&&days<=14?'var(--accent)':'var(--text-muted)';
+
+  el.querySelector('.subject-progress-fill').style.width=pct+'%';
+  el.querySelector('.progress-label').textContent=`${done} / ${s.topics.length} 完了 (${pct}%)`;
+  el.querySelector('.subject-exam-days').textContent=daysLabel;
+  el.querySelector('.subject-exam-days').style.color=daysColor;
+  el.querySelector('.topic-list').innerHTML=s.topics.map(t=>`
+    <div class="topic-item ${t.status}" onclick="toggleDone('${key}',${t.id})">
+      <div class="topic-check">${t.status==='done'?'✓':t.status==='weak'?'!':''}</div>
+      <span class="topic-text">${esc(t.name)}</span>
+      <button class="topic-weak-btn" onclick="event.stopPropagation();toggleWeak('${key}',${t.id})">${t.status==='weak'?'✓解決':'苦手'}</button>
+      <button class="topic-del-btn" onclick="event.stopPropagation();delTopic('${key}',${t.id})" title="削除">×</button>
+    </div>`).join('');
+}
+
+function buildSubjectsGrid() {
+  const grid=document.getElementById('subjectsGrid');
+  if(!state.subjects.length){
+    grid.innerHTML='<div class="empty-state" style="grid-column:1/-1">下の「設定」から科目を追加してください。</div>';return;
+  }
+  grid.innerHTML=state.subjects.map(s=>`
+    <div class="subject-card" id="subj_${s.key}">
+      <div class="subject-header">
+        <div class="subject-icon" style="background:${s.hex}22">${s.emoji||'📖'}</div>
+        <div class="subject-name" style="color:${s.hex}">${esc(s.label)}</div>
+        <div class="subject-tags">
+          ${s.exam?'<span class="tag tag-exam">試験</span>':'<span class="tag">試験外</span>'}
+        </div>
+      </div>
+      <div class="subject-exam-row">
+        <span class="subject-exam-label">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          試験日
+        </span>
+        <input type="date" class="subject-exam-input" id="examdate_${s.key}"
+          value="${s.examDate||''}" onchange="saveExamDate('${s.key}')">
+        <span class="subject-exam-days">—</span>
+      </div>
+      <div class="subject-progress-wrap">
+        <div class="subject-progress-fill" style="background:${s.hex};width:0%"></div>
+      </div>
+      <div class="progress-label">0 / 0 完了 (0%)</div>
+      <div class="topic-list"></div>
+      <div class="add-topic-row">
+        <input type="text" id="new_${s.key}" placeholder="トピックを追加...">
+        <button class="btn btn-ghost btn-xs" onclick="addTopic('${s.key}')">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          追加
+        </button>
+      </div>
+    </div>`).join('');
+  state.subjects.forEach(s=>{
+    document.getElementById(`new_${s.key}`)?.addEventListener('keydown',e=>{if(e.key==='Enter')addTopic(s.key);});
+    renderSubject(s.key);
+  });
+}
+
+// ─── SUBJECT SETTINGS PANEL ───
+function renderSubjSettings() {
+  const grid=document.getElementById('subjSettingsGrid');
+  if(!state.subjects.length){grid.innerHTML='<div class="empty-state">科目がありません。</div>';return;}
+  grid.innerHTML=state.subjects.map(s=>`
+    <div class="subj-setting-row">
+      <div class="subj-setting-icon">${s.emoji||'📖'}</div>
+      <div style="flex:1">
+        <div class="subj-setting-name" style="color:${s.hex}">${esc(s.label)}</div>
+        <div class="subj-setting-meta">${s.exam?'📝 試験科目':'📖 試験外'} · トピック${s.topics.length}件</div>
+      </div>
+      <input type="color" class="color-picker" value="${s.hex}" title="カラー変更"
+        oninput="changeSubjColor('${s.key}',this.value)">
+      <button class="btn btn-red btn-xs" onclick="deleteSubject('${s.key}')">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
+        削除
+      </button>
+    </div>`).join('');
+}
+function changeSubjColor(key, hex) {
+  const s=subj(key); if(!s) return;
+  s.hex=hex; save(); buildSubjectsGrid(); renderAllocation(); renderSubjSettings(); renderHeader();
+}
+function deleteSubject(key) {
+  if(!confirm(`「${subj(key)?.emoji} ${subj(key)?.label}」を削除しますか？`)) return;
+  state.subjects=state.subjects.filter(s=>s.key!==key);
+  save(); buildSubjectsGrid(); renderAllocation(); renderSubjSettings(); refreshLogSubjectSelect(); renderHeader();
+}
+
+// ─── ADD SUBJECT MODAL ───
+function openAddSubject() {
+  selectedEmoji = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+  document.getElementById('newSubjName').value='';
+  document.getElementById('newSubjExam').value='1';
+  document.getElementById('newSubjDate').value='';
+  document.getElementById('newSubjColor').value=PALETTE[paletteIdx%PALETTE.length];
+  document.getElementById('selectedEmojiPreview').textContent=selectedEmoji;
+  buildEmojiGrid();
+  document.getElementById('modalOverlay').style.display='flex';
+  setTimeout(()=>document.getElementById('newSubjName').focus(),50);
+}
+function closeModal(e) {
+  if(!e||e.target===document.getElementById('modalOverlay'))
+    document.getElementById('modalOverlay').style.display='none';
+}
+function addSubject() {
+  const label=document.getElementById('newSubjName').value.trim();
+  if(!label){alert('科目名を入力してください。');return;}
+  const hex    =document.getElementById('newSubjColor').value;
+  const exam   =document.getElementById('newSubjExam').value==='1';
+  const examDate=document.getElementById('newSubjDate').value||null;
+  const key    ='subj_'+Date.now();
+  state.subjects.push({key,label,emoji:selectedEmoji,hex,exam,examDate,topics:[]});
+  paletteIdx++;
+  save();
+  document.getElementById('modalOverlay').style.display='none';
+  buildSubjectsGrid(); renderAllocation(); renderSubjSettings(); refreshLogSubjectSelect(); renderHeader();
+}
+
+// ─── CLEAR ALL ───
+function clearAll() {
+  if(!confirm('全データを削除しますか？取り消せません。')) return;
+  localStorage.removeItem(STORE_KEY); location.reload();
+}
+
+// ─── INIT ───
+document.getElementById('todayDate').textContent =
+  new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
+document.getElementById('logTopic').addEventListener('keydown',e=>{if(e.key==='Enter')addLog();});
+document.getElementById('newSubjName').addEventListener('keydown',e=>{if(e.key==='Enter')addSubject();});
+buildEmojiGrid();
+renderHeader();
+renderStats();
+renderLogs();
+refreshLogSubjectSelect();
+buildSubjectsGrid();
+renderAllocation();
+renderSubjSettings();
+</script>
+</body>
+</html>
