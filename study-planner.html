@@ -25,6 +25,10 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:1
 .save-badge{font-size:10px;color:var(--success);display:flex;align-items:center;gap:4px;opacity:0;transition:opacity .4s;}
 .save-badge.show{opacity:1;}
 .header-right{display:flex;align-items:center;gap:8px;}
+.apikey-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border-radius:9px;margin-bottom:10px;flex-wrap:wrap;}
+.apikey-status{font-size:10px;white-space:nowrap;}
+input[type=password]{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;padding:6px 10px;outline:none;transition:border-color .15s;flex:1;min-width:180px;}
+input[type=password]:focus{border-color:var(--accent);}
 
 main{max-width:840px;margin:0 auto;padding:18px 14px 80px;}
 
@@ -298,6 +302,24 @@ input[type=date]{flex:1;}
   設定 — 科目管理
 </div>
 <div class="card">
+  <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);">
+    <div style="font-size:11px;font-weight:700;color:var(--text-muted);letter-spacing:.08em;margin-bottom:8px;display:flex;align-items:center;gap:5px;">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      AI設定 — APIキー
+    </div>
+    <div class="apikey-row">
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." autocomplete="off">
+      <button class="btn btn-sm" onclick="saveApiKey()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        保存
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="clearApiKey()">削除</button>
+    </div>
+    <div class="apikey-status" id="apiKeyStatus" style="padding:0 12px;"></div>
+    <div style="font-size:10px;color:var(--text-muted);padding:6px 12px 0;line-height:1.7;">
+      APIキーはこのブラウザのみに保存されます。Anthropic Console（console.anthropic.com）で取得できます。
+    </div>
+  </div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
     <span style="font-size:12px;color:var(--text-dim)">科目一覧</span>
     <button class="btn btn-sm" onclick="openAddSubject()">
@@ -566,10 +588,42 @@ function renderAllocation() {
   el.style.display = '';
 }
 
+// ─── API KEY ───
+const APIKEY_STORE = 'medplanner_apikey';
+function getApiKey() { return localStorage.getItem(APIKEY_STORE) || ''; }
+function saveApiKey() {
+  const val = document.getElementById('apiKeyInput').value.trim();
+  if (!val) { alert('APIキーを入力してください。'); return; }
+  localStorage.setItem(APIKEY_STORE, val);
+  document.getElementById('apiKeyInput').value = '';
+  renderApiKeyStatus();
+}
+function clearApiKey() {
+  if (!confirm('APIキーを削除しますか？')) return;
+  localStorage.removeItem(APIKEY_STORE);
+  renderApiKeyStatus();
+}
+function renderApiKeyStatus() {
+  const key = getApiKey();
+  const el = document.getElementById('apiKeyStatus');
+  if (key) {
+    const masked = key.slice(0,10) + '••••••••••••' + key.slice(-4);
+    el.innerHTML = `<span style="color:var(--success)">✓ 設定済み：${masked}</span>`;
+  } else {
+    el.innerHTML = `<span style="color:var(--text-muted)">未設定 — AIで提案を使うにはAPIキーが必要です。</span>`;
+  }
+}
+
 // ─── AI PLAN ───
 async function generatePlan() {
   const hours = parseFloat(document.getElementById('planHours').value)||3;
   if (!state.subjects.length) { alert('先に科目を追加してください。'); return; }
+  const apiKey = getApiKey();
+  if (!apiKey) {
+    alert('APIキーが設定されていません。\n下の「設定」セクションでAPIキーを入力してください。');
+    document.getElementById('apiKeyInput').focus();
+    return;
+  }
   const alloc = calcAllocation();
   const topicSummary = state.subjects.map(s => {
     const weak = s.topics.filter(t=>t.status==='weak').map(t=>t.name);
@@ -588,7 +642,20 @@ ${topicSummary}
   const out = document.getElementById('planOutput');
   out.innerHTML = `<div class="plan-loading"><div class="spinner"></div>AIがプランを考えています…</div>`;
   try {
-    const res  = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1000,messages:[{role:'user',content:prompt}]})
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(()=>({}));
+      throw new Error(err?.error?.message || `HTTP ${res.status}`);
+    }
     const data = await res.json();
     const raw  = data.content.map(c=>c.text||'').join('');
     const tasks= JSON.parse(raw.replace(/```json|```/g,'').trim());
@@ -606,7 +673,7 @@ ${topicSummary}
       </div>`;
     }).join('')+'</div>';
   } catch(e) {
-    out.innerHTML = `<div class="plan-empty" style="color:var(--danger)">プランの生成に失敗しました。もう一度お試しください。</div>`;
+    out.innerHTML = `<div class="plan-empty" style="color:var(--danger)">プランの生成に失敗しました：${esc(e.message||'もう一度お試しください。')}</div>`;
   }
 }
 
@@ -821,6 +888,7 @@ refreshLogSubjectSelect();
 buildSubjectsGrid();
 renderAllocation();
 renderSubjSettings();
+renderApiKeyStatus();
 </script>
 </body>
 </html>
