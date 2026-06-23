@@ -178,7 +178,7 @@ function App() {
   const [showMedEdit, setShowMedEdit] = useState(false);
   const [newMed, setNewMed] = useState({ name:"", unit:"錠", defaultDose:"", timing:"" });
   const [saved, setSaved] = useState(false);
-  const todayKey = getTodayKey();
+  const [todayKey, setTodayKey] = useState(getTodayKey);
 
   const [form, setForm] = useState({ mood:0, sleepHours:"", sleepQuality:0, appetite:0, hasSI:null, siIntensity:0, symptoms:[], memo:"", medLogs:{} });
 
@@ -204,6 +204,23 @@ function App() {
   }, []);
 
   useEffect(() => { setSaved(false); }, [form]);
+
+  useEffect(() => {
+    const checkDate = () => {
+      const newKey = getTodayKey();
+      setTodayKey(prev => prev !== newKey ? newKey : prev);
+    };
+    const interval = setInterval(checkDate, 60000);
+    document.addEventListener("visibilitychange", checkDate);
+    return () => { clearInterval(interval); document.removeEventListener("visibilitychange", checkDate); };
+  }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      const t = allData[todayKey] || {};
+      setForm({ mood:t.mood||0, sleepHours:t.sleepHours||"", sleepQuality:t.sleepQuality||0, appetite:t.appetite||0, hasSI:t.hasSI??null, siIntensity:t.siIntensity||0, symptoms:t.symptoms||[], memo:t.memo||"", medLogs:t.medLogs||{} });
+    }
+  }, [todayKey]);
 
   const updateForm = (key, val) => setForm(f => ({ ...f, [key]: val }));
 
