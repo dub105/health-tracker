@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コアラの体調ノート</title>
+</head>
+<body>
+<div id="root"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#f5f0f8;font-family:sans-serif;color:#7a6e84;font-size:14px;">読み込み中…</div></div>
+<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.23.10/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+const { useState, useEffect } = React;
+
+// ===== KOALA SVG COMPONENTS =====
+const KoalaFace = ({ mood = 3 }) => {
+  const e = mood >= 4 ? "happy" : mood <= 2 ? "sad" : "neutral";
+  return (
+    <svg viewBox="0 0 120 120" width="80" height="80" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="22" cy="35" rx="18" ry="20" fill="#9B8EA8" /><ellipse cx="22" cy="35" rx="11" ry="13" fill="#D4C5E2" />
+      <ellipse cx="98" cy="35" rx="18" ry="20" fill="#9B8EA8" /><ellipse cx="98" cy="35" rx="11" ry="13" fill="#D4C5E2" />
+      <ellipse cx="60" cy="65" rx="42" ry="40" fill="#B8AABF" />
+      {e==="happy"?<><path d="M42 58 Q46 53 50 58" stroke="#4a3f55" strokeWidth="2.5" fill="none" strokeLinecap="round"/><path d="M70 58 Q74 53 78 58" stroke="#4a3f55" strokeWidth="2.5" fill="none" strokeLinecap="round"/></>
+      :e==="sad"?<><ellipse cx="46" cy="59" rx="4" ry="4.5" fill="#4a3f55"/><ellipse cx="74" cy="59" rx="4" ry="4.5" fill="#4a3f55"/><path d="M40 54 Q46 58 52 54" stroke="#4a3f55" strokeWidth="1.5" fill="none" strokeLinecap="round"/><path d="M68 54 Q74 58 80 54" stroke="#4a3f55" strokeWidth="1.5" fill="none" strokeLinecap="round"/></>
+      :<><ellipse cx="46" cy="59" rx="4" ry="4.5" fill="#4a3f55"/><ellipse cx="74" cy="59" rx="4" ry="4.5" fill="#4a3f55"/><circle cx="47.5" cy="57.5" r="1.2" fill="white"/><circle cx="75.5" cy="57.5" r="1.2" fill="white"/></>}
+      <ellipse cx="60" cy="71" rx="9" ry="6.5" fill="#7a6680"/><ellipse cx="58" cy="69.5" rx="2.5" ry="1.5" fill="#9B8EA8" opacity="0.5"/>
+      {e==="happy"?<path d="M52 78 Q60 85 68 78" stroke="#4a3f55" strokeWidth="2" fill="none" strokeLinecap="round"/>
+      :e==="sad"?<path d="M52 82 Q60 76 68 82" stroke="#4a3f55" strokeWidth="2" fill="none" strokeLinecap="round"/>
+      :<path d="M53 80 Q60 82 67 80" stroke="#4a3f55" strokeWidth="2" fill="none" strokeLinecap="round"/>}
+    </svg>
+  );
+};
+const KoalaOnBranch = () => (
+  <svg viewBox="0 0 160 90" width="120" height="68" xmlns="http://www.w3.org/2000/svg">
+    <path d="M0 68 Q80 58 160 65" stroke="#8B6F4E" strokeWidth="8" fill="none" strokeLinecap="round"/>
+    <path d="M0 68 Q80 58 160 65" stroke="#A0845C" strokeWidth="4" fill="none" strokeLinecap="round"/>
+    <ellipse cx="30" cy="52" rx="10" ry="6" fill="#7aab8a" transform="rotate(-30 30 52)" opacity="0.9"/>
+    <ellipse cx="45" cy="45" rx="9" ry="5" fill="#6a9b7a" transform="rotate(-20 45 45)" opacity="0.8"/>
+    <ellipse cx="120" cy="50" rx="10" ry="6" fill="#7aab8a" transform="rotate(20 120 50)" opacity="0.9"/>
+    <ellipse cx="135" cy="43" rx="9" ry="5" fill="#6a9b7a" transform="rotate(35 135 43)" opacity="0.8"/>
+    <ellipse cx="80" cy="56" rx="16" ry="18" fill="#B8AABF"/>
+    <path d="M66 66 Q62 72 68 70" stroke="#9B8EA8" strokeWidth="5" fill="none" strokeLinecap="round"/>
+    <path d="M94 66 Q98 72 92 70" stroke="#9B8EA8" strokeWidth="5" fill="none" strokeLinecap="round"/>
+    <ellipse cx="64" cy="30" rx="11" ry="12" fill="#9B8EA8"/><ellipse cx="64" cy="30" rx="7" ry="8" fill="#D4C5E2"/>
+    <ellipse cx="96" cy="30" rx="11" ry="12" fill="#9B8EA8"/><ellipse cx="96" cy="30" rx="7" ry="8" fill="#D4C5E2"/>
+    <ellipse cx="80" cy="40" rx="20" ry="19" fill="#B8AABF"/>
+    <ellipse cx="73" cy="38" rx="3" ry="3.5" fill="#4a3f55"/><ellipse cx="87" cy="38" rx="3" ry="3.5" fill="#4a3f55"/>
+    <circle cx="74" cy="36.5" r="1" fill="white"/><circle cx="88" cy="36.5" r="1" fill="white"/>
+    <ellipse cx="80" cy="44" rx="5.5" ry="4" fill="#7a6680"/>
+    <path d="M75 49 Q80 53 85 49" stroke="#4a3f55" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+  </svg>
+);
+const KoalaSleeping = () => (
+  <svg viewBox="0 0 80 60" width="52" height="40" xmlns="http://www.w3.org/2000/svg">
+    <text x="54" y="16" fontSize="9" fill="#9B8EA8" fontWeight="bold" opacity="0.7">z</text>
+    <text x="60" y="9" fontSize="7" fill="#9B8EA8" fontWeight="bold" opacity="0.5">z</text>
+    <ellipse cx="22" cy="22" rx="10" ry="11" fill="#9B8EA8"/><ellipse cx="22" cy="22" rx="6" ry="7" fill="#D4C5E2"/>
+    <ellipse cx="46" cy="22" rx="10" ry="11" fill="#9B8EA8"/><ellipse cx="46" cy="22" rx="6" ry="7" fill="#D4C5E2"/>
+    <ellipse cx="34" cy="34" rx="20" ry="18" fill="#B8AABF"/>
+    <path d="M24 32 Q27 30 30 32" stroke="#4a3f55" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
+    <path d="M38 32 Q41 30 44 32" stroke="#4a3f55" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
+    <ellipse cx="34" cy="38" rx="5" ry="3.5" fill="#7a6680"/>
+    <path d="M29 43 Q34 47 39 43" stroke="#4a3f55" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+  </svg>
+);
+const KoalaTiny = ({ size = 22 }) => (
+  <svg viewBox="0 0 40 40" width={size} height={size} xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="8" cy="14" rx="7" ry="8" fill="#9B8EA8"/><ellipse cx="8" cy="14" rx="4" ry="5" fill="#D4C5E2"/>
+    <ellipse cx="32" cy="14" rx="7" ry="8" fill="#9B8EA8"/><ellipse cx="32" cy="14" rx="4" ry="5" fill="#D4C5E2"/>
+    <ellipse cx="20" cy="24" rx="15" ry="14" fill="#B8AABF"/>
+    <ellipse cx="15" cy="22" rx="2.5" ry="3" fill="#4a3f55"/><ellipse cx="25" cy="22" rx="2.5" ry="3" fill="#4a3f55"/>
+    <circle cx="15.8" cy="21" r="0.8" fill="white"/><circle cx="25.8" cy="21" r="0.8" fill="white"/>
+    <ellipse cx="20" cy="27" rx="4" ry="3" fill="#7a6680"/>
+    <path d="M16 32 Q20 35 24 32" stroke="#4a3f55" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+  </svg>
+);
+const EucalyptusLeaf = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="12" cy="12" rx="6" ry="10" fill="#7aab8a" transform="rotate(-30 12 12)"/>
+    <line x1="12" y1="4" x2="12" y2="20" stroke="#5a8a6a" strokeWidth="1" transform="rotate(-30 12 12)"/>
+  </svg>
+);
+
+// ===== CONSTANTS =====
+const MOODS = [
+  { value:1, label:"とてもつらい", emoji:"😔", color:"#c4788a" },
+  { value:2, label:"つらい",       emoji:"😞", color:"#d4957a" },
+  { value:3, label:"ふつう",       emoji:"😐", color:"#c8b870" },
+  { value:4, label:"まあまあ",     emoji:"🙂", color:"#7aab8a" },
+  { value:5, label:"よい",         emoji:"😊", color:"#6a9ab0" },
+];
+const SLEEP_QUALITY = [
+  { value:1, label:"眠れなかった" }, { value:2, label:"あまり眠れなかった" },
+  { value:3, label:"まあまあ" },     { value:4, label:"よく眠れた" },
+];
+const APPETITE = [
+  { value:1, label:"ほとんど食べられなかった" }, { value:2, label:"少し食べた" },
+  { value:3, label:"まあまあ食べた" },           { value:4, label:"普通に食べられた" },
+];
+const DEFAULT_SYMPTOMS = [
+  "気力がわかない","集中できない","不安感が強い","イライラする","涙が出る",
+  "体がだるい","頭痛","動悸","過呼吸","外出できない",
+];
+const DEFAULT_MEDS = [
+  { id:"med-1", name:"イフェクサー",            unit:"錠", defaultDose:1, timing:"朝食後" },
+  { id:"med-2", name:"タンドスピロンクエン酸塩", unit:"錠", defaultDose:2, timing:"昼食後" },
+  { id:"med-3", name:"クービビック",             unit:"錠", defaultDose:1, timing:"就寝前" },
+  { id:"med-4", name:"ブロチゾラム",             unit:"錠", defaultDose:1, timing:"就寝前" },
+];
+
+// ===== STORAGE HELPERS (localStorage) =====
+const sget = async (key) => {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; }
+  catch { return null; }
+};
+const sset = async (key, val) => {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+};
+
+const getTodayKey = () => new Date().toISOString().slice(0, 10);
+const formatDate = (key) => {
+  const d = new Date(key + "T00:00:00");
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${"日月火水木金土"[d.getDay()]}）`;
+};
+
+// ===== SYMPTOMS SECTION =====
+const SymptomsSection = ({ cardStyle, colors, btnStyle, customSymptoms, form, toggleSymptom, handleDeleteCustomSymptom, handleAddSymptom, showDeleteMode, setShowDeleteMode }) => {
+  const [input, setInput] = useState("");
+  const doAdd = () => { if (input.trim()) { handleAddSymptom(input.trim()); setInput(""); } };
+  return (
+    <div style={cardStyle}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"12px" }}>
+        <div style={{ display:"flex", alignItems:"center", gap:"6px" }}>
+          <EucalyptusLeaf/>
+          <span style={{ fontSize:"14px", fontWeight:"600", color:colors.text }}>今日あった症状（複数選択可）</span>
+        </div>
+        {customSymptoms.length > 0 && (
+          <button onClick={() => setShowDeleteMode(v => !v)} style={{ fontSize:"11px", color:showDeleteMode?colors.accentWarm:colors.textLight, background:"none", border:`1px solid ${showDeleteMode?colors.accentWarm:colors.border}`, borderRadius:"12px", padding:"3px 10px", cursor:"pointer" }}>
+            {showDeleteMode ? "完了" : "編集"}
+          </button>
+        )}
+      </div>
+      <div style={{ display:"flex", gap:"6px", flexWrap:"wrap", marginBottom:"10px" }}>
+        {DEFAULT_SYMPTOMS.map(s => <button key={s} onClick={() => toggleSymptom(s)} style={btnStyle(form.symptoms.includes(s),"#c4788a")}>{s}</button>)}
+      </div>
+      {customSymptoms.length > 0 && (
+        <div style={{ display:"flex", gap:"6px", flexWrap:"wrap", marginBottom:"10px" }}>
+          {customSymptoms.map(s => (
+            <div key={s} style={{ position:"relative", display:"inline-flex", alignItems:"center" }}>
+              <button onClick={() => !showDeleteMode && toggleSymptom(s)} style={{ ...btnStyle(form.symptoms.includes(s),"#9B8EA8"), paddingRight:showDeleteMode?"28px":"14px", opacity:showDeleteMode?0.75:1 }}>{s}</button>
+              {showDeleteMode && <button onClick={() => handleDeleteCustomSymptom(s)} style={{ position:"absolute", right:"4px", top:"50%", transform:"translateY(-50%)", width:"18px", height:"18px", borderRadius:"50%", background:colors.accentWarm, border:"none", color:"white", fontSize:"12px", cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", padding:0 }}>×</button>}
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ display:"flex", gap:"8px", alignItems:"center", marginTop:"4px" }}>
+        <input type="text" value={input} onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key==="Enter") { e.preventDefault(); doAdd(); }}}
+          placeholder="新しい症状を追加…" maxLength={20}
+          style={{ flex:1, padding:"8px 12px", borderRadius:"20px", border:`1.5px solid ${colors.border}`, fontSize:"13px", outline:"none", color:colors.text, fontFamily:"inherit", backgroundColor:"white" }}
+        />
+        <button onClick={doAdd} disabled={!input.trim()} style={{ padding:"8px 14px", borderRadius:"20px", border:"none", background:input.trim()?colors.primary:colors.border, color:"white", fontSize:"13px", fontWeight:"600", cursor:input.trim()?"pointer":"default", whiteSpace:"nowrap" }}>＋追加</button>
+      </div>
+      <div style={{ fontSize:"11px", color:colors.textLight, marginTop:"6px" }}>追加した症状は次回以降も表示されます</div>
+    </div>
+  );
+};
+
+// ===== MAIN APP =====
+function App() {
+  const [loading, setLoading] = useState(true);
+  const [view, setView] = useState("record");
+  const [allData, setAllData] = useState({});
+  const [customSymptoms, setCustomSymptoms] = useState([]);
+  const [medList, setMedList] = useState(DEFAULT_MEDS);
+  const [showDeleteMode, setShowDeleteMode] = useState(false);
+  const [showMedEdit, setShowMedEdit] = useState(false);
+  const [newMed, setNewMed] = useState({ name:"", unit:"錠", defaultDose:"", timing:"" });
+  const [saved, setSaved] = useState(false);
+  const todayKey = getTodayKey();
+
+  const [form, setForm] = useState({ mood:0, sleepHours:"", sleepQuality:0, appetite:0, hasSI:null, siIntensity:0, symptoms:[], memo:"", medLogs:{} });
+
+  useEffect(() => {
+    (async () => {
+      const [data, syms, meds] = await Promise.all([sget("koala-health"), sget("koala-custom-symptoms"), sget("koala-med-list")]);
+      const loaded = data || {};
+      setAllData(loaded);
+      setCustomSymptoms(syms || []);
+      if (meds) {
+        const savedIds = new Set(meds.map(m => m.id));
+        const missing = DEFAULT_MEDS.filter(m => !savedIds.has(m.id));
+        const merged = missing.length > 0 ? [...meds, ...missing] : meds;
+        if (missing.length > 0) await sset("koala-med-list", merged);
+        setMedList(merged);
+      } else {
+        await sset("koala-med-list", DEFAULT_MEDS);
+      }
+      const t = loaded[getTodayKey()] || {};
+      setForm({ mood:t.mood||0, sleepHours:t.sleepHours||"", sleepQuality:t.sleepQuality||0, appetite:t.appetite||0, hasSI:t.hasSI??null, siIntensity:t.siIntensity||0, symptoms:t.symptoms||[], memo:t.memo||"", medLogs:t.medLogs||{} });
+      setLoading(false);
+    })();
+  }, []);
+
+  useEffect(() => { setSaved(false); }, [form]);
+
+  const updateForm = (key, val) => setForm(f => ({ ...f, [key]: val }));
+
+  const handleSave = async () => {
+    const updated = { ...allData, [todayKey]: { ...form, savedAt: new Date().toISOString() } };
+    setAllData(updated);
+    await sset("koala-health", updated);
+    setSaved(true);
+  };
+
+  const allSymptomsList = [...DEFAULT_SYMPTOMS, ...customSymptoms];
+  const toggleSymptom = s => updateForm("symptoms", form.symptoms.includes(s) ? form.symptoms.filter(x=>x!==s) : [...form.symptoms, s]);
+
+  const handleAddSymptom = async (text) => {
+    const trimmed = (text||"").trim();
+    if (!trimmed || allSymptomsList.includes(trimmed)) return;
+    const updated = [...customSymptoms, trimmed];
+    setCustomSymptoms(updated);
+    await sset("koala-custom-symptoms", updated);
+  };
+  const handleDeleteCustomSymptom = async (s) => {
+    const updated = customSymptoms.filter(x=>x!==s);
+    setCustomSymptoms(updated);
+    await sset("koala-custom-symptoms", updated);
+    if (form.symptoms.includes(s)) updateForm("symptoms", form.symptoms.filter(x=>x!==s));
+  };
+  const handleAddMed = async () => {
+    const name = newMed.name.trim();
+    if (!name) return;
+    const med = { id:Date.now().toString(), name, unit:newMed.unit.trim()||"錠", defaultDose:newMed.defaultDose?Number(newMed.defaultDose):null, timing:newMed.timing.trim()||null };
+    const updated = [...medList, med];
+    setMedList(updated);
+    await sset("koala-med-list", updated);
+    setNewMed({ name:"", unit:"錠", defaultDose:"", timing:"" });
+  };
+  const handleDeleteMed = async (id) => {
+    const updated = medList.filter(m=>m.id!==id);
+    setMedList(updated);
+    await sset("koala-med-list", updated);
+    const ml = { ...(form.medLogs||{}) };
+    delete ml[id];
+    updateForm("medLogs", ml);
+  };
+  const updateMedLog = (id, field, value) => {
+    const ml = { ...(form.medLogs||{}) };
+    ml[id] = { ...(ml[id]||{taken:null,dose:""}), [field]:value };
+    updateForm("medLogs", ml);
+  };
+
+  const colors = { bg:"#f5f0f8", card:"#ffffff", primary:"#9B8EA8", primaryLight:"#D4C5E2", accent:"#7aab8a", accentWarm:"#c4788a", text:"#3d3445", textLight:"#7a6e84", border:"#e0d8ea" };
+  const btnStyle = (active, color=colors.primary) => ({ padding:"8px 14px", borderRadius:"20px", border:`2px solid ${active?color:colors.border}`, background:active?color:"white", color:active?"white":colors.textLight, cursor:"pointer", fontSize:"13px", fontWeight:active?"600":"400", transition:"all 0.2s" });
+  const cardStyle = { background:colors.card, borderRadius:"16px", padding:"18px", marginBottom:"14px", border:`1px solid ${colors.border}`, boxShadow:"0 2px 8px rgba(155,142,168,0.08)" };
+  const sectionLabel = (text, icon=null) => (
+    <div style={{ display:"flex", alignItems:"center", gap:"6px", marginBottom:"12px" }}>
+      {icon ?? <EucalyptusLeaf/>}
+      <span style={{ fontSize:"14px", fontWeight:"600", color:colors.text }}>{text}</span>
+    </div>
+  );
+
+  const RecordView = () => (
+    <div>
+      <div style={{ textAlign:"center", padding:"10px 0 8px" }}>
+        <KoalaOnBranch/>
+        <div style={{ marginTop:"2px" }}><KoalaFace mood={form.mood||3}/></div>
+        <div style={{ fontSize:"12px", color:colors.textLight, marginTop:"2px" }}>
+          {form.mood ? MOODS.find(m=>m.value===form.mood)?.label : "今日の気分を記録してね"}
+        </div>
+      </div>
+
+      <div style={cardStyle}>
+        {sectionLabel("気分")}
+        <div style={{ display:"flex", gap:"8px", flexWrap:"wrap" }}>
+          {MOODS.map(m => (
+            <button key={m.value} onClick={() => updateForm("mood",m.value)} style={{ ...btnStyle(form.mood===m.value,m.color), display:"flex", flexDirection:"column", alignItems:"center", padding:"10px 12px", gap:"3px", flex:"1", minWidth:"56px" }}>
+              <span style={{ fontSize:"20px" }}>{m.emoji}</span>
+              <span style={{ fontSize:"11px", whiteSpace:"nowrap" }}>{m.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div style={cardStyle}>
+        {sectionLabel("睡眠", <KoalaSleeping/>)}
+        <div style={{ marginBottom:"12px" }}>
+          <div style={{ fontSize:"13px", color:colors.textLight, marginBottom:"8px" }}>睡眠時間</div>
+          <div style={{ display:"flex", alignItems:"center", gap:"8px" }}>
+            <input type="number" min="0" max="24" step="0.5" value={form.sleepHours} onChange={e=>updateForm("sleepHours",e.target.value)}
+              style={{ width:"70px", padding:"8px", borderRadius:"10px", border:`1.5px solid ${colors.border}`, fontSize:"16px", textAlign:"center", outline:"none" }}/>
+            <span style={{ color:colors.textLight, fontSize:"14px" }}>時間</span>
+          </div>
+        </div>
+        <div>
+          <div style={{ fontSize:"13px", color:colors.textLight, marginBottom:"8px" }}>眠りの質</div>
+          <div style={{ display:"flex", gap:"6px", flexWrap:"wrap" }}>
+            {SLEEP_QUALITY.map(s => <button key={s.value} onClick={()=>updateForm("sleepQuality",s.value)} style={btnStyle(form.sleepQuality===s.value)}>{s.label}</button>)}
+          </div>
+        </div>
+      </div>
+
+      <div style={cardStyle}>
+        {sectionLabel("食欲", <KoalaTiny size={22}/>)}
+        <div style={{ display:"flex", gap:"6px", flexWrap:"wrap" }}>
+          {APPETITE.map(a => <button key={a.value} onClick={()=>updateForm("appetite",a.value)} style={btnStyle(form.appetite===a.value,colors.accent)}>{a.label}</button>)}
+        </div>
+      </div>
+
+      <div style={cardStyle}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"12px" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:"6px" }}>
+            <EucalyptusLeaf/><span style={{ fontSize:"14px", fontWeight:"600", color:colors.text }}>お薬</span>
+          </div>
+          <button onClick={()=>setShowMedEdit(v=>!v)} style={{ fontSize:"11px", color:showMedEdit?colors.accentWarm:colors.textLight, background:"none", border:`1px solid ${showMedEdit?colors.accentWarm:colors.border}`, borderRadius:"12px", padding:"3px 10px", cursor:"pointer" }}>
+            {showMedEdit?"完了":"薬を管理"}
+          </button>
+        </div>
+        {medList.length===0&&!showMedEdit&&<div style={{ fontSize:"13px", color:colors.textLight, marginBottom:"10px" }}>「薬を管理」から飲んでいる薬を登録してください</div>}
+        {!showMedEdit&&medList.length>0&&(
+          <div style={{ display:"flex", flexDirection:"column", gap:"10px", marginBottom:"4px" }}>
+            {medList.map(med => {
+              const log = form.medLogs?.[med.id]||{taken:null,dose:""};
+              return (
+                <div key={med.id} style={{ background:colors.bg, borderRadius:"12px", padding:"12px 14px", border:`1.5px solid ${log.taken===true?colors.accent:log.taken===false?colors.accentWarm:colors.border}` }}>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:"8px" }}>
+                    <div style={{ fontSize:"14px", fontWeight:"600", color:colors.text }}>💊 {med.name}</div>
+                    {med.timing&&<span style={{ fontSize:"11px", color:colors.textLight, background:colors.bg, borderRadius:"10px", padding:"2px 8px", border:`1px solid ${colors.border}` }}>{med.timing}</span>}
+                  </div>
+                  <div style={{ display:"flex", alignItems:"center", gap:"8px", flexWrap:"wrap" }}>
+                    <button onClick={()=>updateMedLog(med.id,"taken",true)} style={btnStyle(log.taken===true,colors.accent)}>飲めた ✓</button>
+                    <button onClick={()=>updateMedLog(med.id,"taken",false)} style={btnStyle(log.taken===false,colors.accentWarm)}>飲めなかった</button>
+                  </div>
+                  {log.taken===true&&(
+                    <div style={{ display:"flex", alignItems:"center", gap:"6px", marginTop:"10px" }}>
+                      <span style={{ fontSize:"12px", color:colors.textLight }}>服用量</span>
+                      <button onClick={()=>{const c=Number(log.dose!==""?log.dose:med.defaultDose??1);if(c>0)updateMedLog(med.id,"dose",c-0.5);}} style={{ width:"30px",height:"30px",borderRadius:"50%",border:`1.5px solid ${colors.border}`,background:"white",fontSize:"18px",cursor:"pointer",color:colors.textLight,display:"flex",alignItems:"center",justifyContent:"center" }}>－</button>
+                      <input type="number" min="0" step="0.5" value={log.dose!==""?log.dose:(med.defaultDose??"")} onChange={e=>updateMedLog(med.id,"dose",e.target.value)}
+                        style={{ width:"58px",padding:"6px 4px",borderRadius:"8px",border:`1.5px solid ${colors.border}`,fontSize:"16px",textAlign:"center",outline:"none",fontFamily:"inherit",fontWeight:"600",color:colors.text }}/>
+                      <button onClick={()=>{const c=Number(log.dose!==""?log.dose:med.defaultDose??0);updateMedLog(med.id,"dose",c+0.5);}} style={{ width:"30px",height:"30px",borderRadius:"50%",border:`1.5px solid ${colors.border}`,background:"white",fontSize:"18px",cursor:"pointer",color:colors.textLight,display:"flex",alignItems:"center",justifyContent:"center" }}>＋</button>
+                      <span style={{ fontSize:"13px",color:colors.textLight }}>{med.unit}</span>
+                      {med.defaultDose!=null&&Number(log.dose!==""?log.dose:med.defaultDose)!==med.defaultDose&&<span style={{ fontSize:"11px",color:colors.accentWarm }}>（通常{med.defaultDose}{med.unit}）</span>}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {showMedEdit&&(
+          <div>
+            {medList.length>0&&(
+              <div style={{ marginBottom:"14px" }}>
+                {medList.map(med=>(
+                  <div key={med.id} style={{ display:"flex",alignItems:"center",justifyContent:"space-between",background:colors.bg,borderRadius:"10px",padding:"10px 12px",marginBottom:"6px" }}>
+                    <div>
+                      <span style={{ fontSize:"14px",fontWeight:"600",color:colors.text }}>💊 {med.name}</span>
+                      <span style={{ fontSize:"12px",color:colors.textLight,marginLeft:"8px" }}>{med.defaultDose!=null?`通常 ${med.defaultDose}${med.unit}`:med.unit}{med.timing?`　${med.timing}`:""}</span>
+                    </div>
+                    <button onClick={()=>handleDeleteMed(med.id)} style={{ width:"24px",height:"24px",borderRadius:"50%",background:colors.accentWarm,border:"none",color:"white",fontSize:"14px",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center" }}>×</button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{ background:"#f0f7f3",borderRadius:"12px",padding:"12px",border:`1px solid ${colors.accent}30` }}>
+              <div style={{ fontSize:"13px",fontWeight:"600",color:colors.text,marginBottom:"10px" }}>新しい薬を追加</div>
+              <div style={{ display:"flex",flexDirection:"column",gap:"8px" }}>
+                <input type="text" value={newMed.name} onChange={e=>setNewMed(m=>({...m,name:e.target.value}))} placeholder="薬の名前" maxLength={30} style={{ padding:"9px 12px",borderRadius:"10px",border:`1.5px solid ${colors.border}`,fontSize:"14px",outline:"none",fontFamily:"inherit",color:colors.text }}/>
+                <div style={{ display:"flex",gap:"8px" }}>
+                  <input type="text" value={newMed.unit} onChange={e=>setNewMed(m=>({...m,unit:e.target.value}))} placeholder="単位（錠・mg等）" maxLength={10} style={{ flex:1,padding:"9px 12px",borderRadius:"10px",border:`1.5px solid ${colors.border}`,fontSize:"14px",outline:"none",fontFamily:"inherit",color:colors.text }}/>
+                  <input type="number" value={newMed.defaultDose} onChange={e=>setNewMed(m=>({...m,defaultDose:e.target.value}))} placeholder="通常量" min="0" step="0.5" style={{ flex:1,padding:"9px 12px",borderRadius:"10px",border:`1.5px solid ${colors.border}`,fontSize:"14px",outline:"none",fontFamily:"inherit",color:colors.text,textAlign:"center" }}/>
+                </div>
+                <input type="text" value={newMed.timing} onChange={e=>setNewMed(m=>({...m,timing:e.target.value}))} placeholder="服用タイミング（例：朝食後）" maxLength={20} style={{ padding:"9px 12px",borderRadius:"10px",border:`1.5px solid ${colors.border}`,fontSize:"14px",outline:"none",fontFamily:"inherit",color:colors.text }}/>
+                <div style={{ fontSize:"11px",color:colors.textLight }}>※ 単位は mg・錠・包など自由に入力、通常量は省略可</div>
+                <button onClick={handleAddMed} disabled={!newMed.name.trim()} style={{ padding:"10px",borderRadius:"10px",border:"none",background:newMed.name.trim()?colors.accent:colors.border,color:"white",fontSize:"14px",fontWeight:"600",cursor:newMed.name.trim()?"pointer":"default" }}>＋追加</button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <SymptomsSection cardStyle={cardStyle} colors={colors} btnStyle={btnStyle} customSymptoms={customSymptoms} form={form} toggleSymptom={toggleSymptom} handleDeleteCustomSymptom={handleDeleteCustomSymptom} handleAddSymptom={handleAddSymptom} showDeleteMode={showDeleteMode} setShowDeleteMode={setShowDeleteMode}/>
+
+      <div style={{ ...cardStyle, borderColor:form.hasSI?"#e8a0b0":colors.border }}>
+        {sectionLabel("希死念慮について")}
+        <div style={{ fontSize:"12px",color:colors.textLight,marginBottom:"10px",lineHeight:"1.6" }}>正直に記録することで、医師が適切なサポートをしやすくなります</div>
+        <div style={{ display:"flex",gap:"8px",marginBottom:"12px" }}>
+          <button onClick={()=>updateForm("hasSI",false)} style={btnStyle(form.hasSI===false,colors.accent)}>なかった</button>
+          <button onClick={()=>updateForm("hasSI",true)} style={btnStyle(form.hasSI===true,colors.accentWarm)}>あった</button>
+        </div>
+        {form.hasSI&&(
+          <div>
+            <div style={{ fontSize:"13px",color:colors.textLight,marginBottom:"8px" }}>強さ（1＝少し / 5＝とても強く）</div>
+            <div style={{ display:"flex",gap:"8px" }}>
+              {[1,2,3,4,5].map(n=><button key={n} onClick={()=>updateForm("siIntensity",n)} style={{ ...btnStyle(form.siIntensity===n,"#c4788a"),width:"40px",height:"40px",padding:"0",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"15px",fontWeight:"600" }}>{n}</button>)}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div style={cardStyle}>
+        {sectionLabel("メモ（医師に伝えたいこと・気になったこと）")}
+        <textarea value={form.memo} onChange={e=>updateForm("memo",e.target.value)} placeholder="どんな小さなことでも書いておくと診察に役立ちます..."
+          style={{ width:"100%",minHeight:"100px",padding:"10px",borderRadius:"10px",border:`1.5px solid ${colors.border}`,fontSize:"14px",resize:"vertical",outline:"none",fontFamily:"inherit",color:colors.text,lineHeight:"1.6",boxSizing:"border-box" }}/>
+      </div>
+
+      <button onClick={handleSave} style={{ width:"100%",padding:"16px",borderRadius:"16px",border:"none",background:saved?colors.accent:colors.primary,color:"white",fontSize:"16px",fontWeight:"700",cursor:"pointer",marginBottom:"8px",transition:"all 0.3s" }}>
+        {saved?"✓ 保存しました":"今日の記録を保存する"}
+      </button>
+      <div style={{ background:"#fdf0f3",borderRadius:"12px",padding:"12px 14px",border:"1px solid #f0c0cc",fontSize:"12px",color:"#9a4a5a",lineHeight:"1.7",marginBottom:"8px" }}>
+        🌿 つらくなったときは、よりそいホットライン <strong>0120-279-338</strong>（24時間）に電話してみてください。
+      </div>
+    </div>
+  );
+
+  const HistoryView = () => {
+    const entries = Object.entries(allData).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,30);
+    if (entries.length===0) return <div style={{ textAlign:"center",padding:"40px 20px",color:colors.textLight }}><KoalaFace mood={3}/><div style={{ marginTop:"12px",fontSize:"14px" }}>まだ記録がありません</div></div>;
+    return (
+      <div>
+        {entries.map(([key,data])=>{
+          const moodInfo=MOODS.find(m=>m.value===data.mood);
+          return (
+            <div key={key} style={{ ...cardStyle,borderLeft:`4px solid ${moodInfo?.color||colors.border}` }}>
+              <div style={{ fontSize:"12px",color:colors.textLight,marginBottom:"8px" }}>{formatDate(key)}</div>
+              <div style={{ display:"flex",gap:"12px",flexWrap:"wrap",fontSize:"13px" }}>
+                {moodInfo&&<span>{moodInfo.emoji} <strong>{moodInfo.label}</strong></span>}
+                {data.sleepHours&&<span>💤 {data.sleepHours}時間</span>}
+                {data.medLogs&&Object.keys(data.medLogs).length>0&&(()=>{
+                  const logs=data.medLogs;
+                  const taken=Object.values(logs).filter(l=>l.taken===true).length;
+                  const missed=Object.values(logs).filter(l=>l.taken===false).length;
+                  const total=Object.values(logs).filter(l=>l.taken!==null).length;
+                  if(total===0)return null;
+                  return <span style={{ color:missed>0?colors.accentWarm:colors.accent }}>💊 {taken}/{total}種服薬{missed>0?`（${missed}種飲めず）`:""}</span>;
+                })()}
+                {data.hasSI&&<span style={{ color:colors.accentWarm }}>⚠️ 希死念慮あり（強さ:{data.siIntensity}）</span>}
+              </div>
+              {data.symptoms?.length>0&&<div style={{ marginTop:"8px",fontSize:"12px",color:colors.textLight }}>症状: {data.symptoms.join("・")}</div>}
+              {data.memo&&<div style={{ marginTop:"8px",fontSize:"12px",color:colors.text,background:colors.bg,borderRadius:"8px",padding:"8px 10px",lineHeight:"1.6" }}>{data.memo}</div>}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const SummaryView = () => {
+    const [lastVisit, setLastVisit] = useState("");
+    const [editingDate, setEditingDate] = useState(true);
+    const [lvLoading, setLvLoading] = useState(true);
+    useEffect(()=>{ sget("koala-last-visit").then(v=>{ if(v){setLastVisit(v);setEditingDate(false);} setLvLoading(false); }); },[]);
+    const saveLastVisit = async (date) => { await sset("koala-last-visit",date); setLastVisit(date); setEditingDate(false); };
+
+    const allEntries = Object.entries(allData).sort((a,b)=>a[0].localeCompare(b[0]));
+    const entries = lastVisit ? allEntries.filter(([k])=>k>lastVisit) : allEntries.slice(-14);
+    const periodLabel = lastVisit ? `${formatDate(lastVisit)}以降（${entries.length}日分）` : `直近14日間（${entries.length}日分）`;
+
+    if (allEntries.length===0) return <div style={{ textAlign:"center",padding:"40px 20px",color:colors.textLight }}><KoalaFace mood={3}/><div style={{ marginTop:"12px",fontSize:"14px" }}>まだ記録がありません</div></div>;
+
+    const moodEs=entries.filter(e=>e[1].mood);
+    const avgMood=moodEs.length>0?(moodEs.reduce((s,e)=>s+e[1].mood,0)/moodEs.length).toFixed(1):"—";
+    const siDays=entries.filter(e=>e[1].hasSI).length;
+    const siMax=siDays>0?Math.max(...entries.filter(e=>e[1].hasSI).map(e=>e[1].siIntensity||0)):0;
+    const moodTrend=entries.filter(e=>e[1].mood).slice(-14);
+    const medStats=medList.map(med=>{
+      const rec=entries.filter(e=>e[1].medLogs?.[med.id]?.taken!==undefined&&e[1].medLogs?.[med.id]?.taken!==null);
+      return {...med,recorded:rec.length,taken:rec.filter(e=>e[1].medLogs[med.id].taken===true).length,missed:rec.filter(e=>e[1].medLogs[med.id].taken===false).length};
+    });
+    const symMap={};
+    entries.forEach(([,d])=>(d.symptoms||[]).forEach(s=>{symMap[s]=(symMap[s]||0)+1;}));
+    const topSyms=Object.entries(symMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+    const sleepEs=entries.filter(e=>e[1].sleepHours);
+    const avgSleep=sleepEs.length>0?(sleepEs.reduce((s,e)=>s+Number(e[1].sleepHours),0)/sleepEs.length).toFixed(1):"—";
+    const appEs=entries.filter(e=>e[1].appetite);
+    const avgApp=appEs.length>0?(appEs.reduce((s,e)=>s+e[1].appetite,0)/appEs.length).toFixed(1):"—";
+    const appLabel=avgApp!=="—"?APPETITE.find(a=>a.value===Math.round(Number(avgApp)))?.label||"—":"—";
+    const moodInfo=MOODS.find(m=>m.value===Math.round(Number(avgMood)));
+    const memoEs=entries.filter(([,d])=>d.memo);
+
+    const summaryText=`【診察まとめ】${lastVisit?`\n期間: ${lastVisit} ～ ${todayKey}`:""}
+記録日数: ${entries.length}日
+
+■ 気分
+・平均: ${avgMood}/5（${moodInfo?.label||"—"}）
+・希死念慮があった日: ${siDays}日${siDays>0?`（最大強度: ${siMax}/5）`:""}
+
+■ 睡眠・食欲
+・平均睡眠時間: ${avgSleep}時間
+・食欲（平均）: ${appLabel}
+
+■ よくあった症状
+${topSyms.length>0?topSyms.map(([s,n])=>`  ・${s}（${n}日）`).join("\n"):"  ・なし"}
+
+■ 服薬状況
+${medStats.length>0?medStats.map(m=>`  ・${m.name}（${m.timing||""}）: ${m.recorded>0?`${m.taken}/${m.recorded}日服薬、${m.missed}日飲めず`:"記録なし"}`).join("\n"):"  ・薬の記録なし"}
+
+■ 気になったこと・メモ
+${memoEs.length>0?memoEs.map(([k,d])=>`  ${k}: ${d.memo}`).join("\n"):"  ・なし"}`;
+
+    if (lvLoading) return <div style={{ textAlign:"center",padding:"40px",color:colors.textLight }}>読み込み中…</div>;
+    return (
+      <div>
+        <div style={{ ...cardStyle,borderColor:editingDate?colors.accent:colors.border }}>
+          <div style={{ fontSize:"14px",fontWeight:"600",color:colors.text,marginBottom:"10px" }}>🗓 前回の診察日</div>
+          {editingDate?(
+            <div>
+              <input type="date" defaultValue={lastVisit} max={todayKey} onChange={e=>{if(e.target.value)saveLastVisit(e.target.value);}}
+                style={{ width:"100%",padding:"10px 12px",borderRadius:"10px",border:`1.5px solid ${colors.accent}`,fontSize:"15px",outline:"none",fontFamily:"inherit",color:colors.text,boxSizing:"border-box" }}/>
+              <div style={{ fontSize:"11px",color:colors.textLight,marginTop:"6px" }}>前回診察日を設定すると、その日以降の記録でまとめを作ります</div>
+            </div>
+          ):(
+            <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between" }}>
+              <div>
+                <div style={{ fontSize:"15px",fontWeight:"600",color:colors.primary }}>{formatDate(lastVisit)}</div>
+                <div style={{ fontSize:"12px",color:colors.textLight,marginTop:"2px" }}>{periodLabel}</div>
+              </div>
+              <button onClick={()=>setEditingDate(true)} style={{ fontSize:"12px",color:colors.textLight,background:"none",border:`1px solid ${colors.border}`,borderRadius:"12px",padding:"4px 12px",cursor:"pointer" }}>変更</button>
+            </div>
+          )}
+        </div>
+
+        {entries.length===0?(
+          <div style={{ textAlign:"center",padding:"30px 20px",color:colors.textLight,fontSize:"14px" }}>この期間の記録がありません</div>
+        ):(<>
+          <div style={cardStyle}>
+            <div style={{ fontSize:"14px",fontWeight:"600",color:colors.text,marginBottom:"12px" }}>📋 {periodLabel}のまとめ</div>
+            <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px" }}>
+              {[
+                {label:"平均気分",value:avgMood!=="—"?`${avgMood}/5`:"—",color:colors.primary},
+                {label:"希死念慮があった日",value:`${siDays}日`,color:siDays>0?colors.accentWarm:colors.accent},
+                {label:"平均睡眠時間",value:avgSleep!=="—"?`${avgSleep}h`:"—",color:colors.primary},
+                {label:"記録した日数",value:`${entries.length}日`,color:colors.accent},
+              ].map(item=>(
+                <div key={item.label} style={{ background:colors.bg,borderRadius:"12px",padding:"12px",textAlign:"center" }}>
+                  <div style={{ fontSize:"20px",fontWeight:"700",color:item.color }}>{item.value}</div>
+                  <div style={{ fontSize:"11px",color:colors.textLight,marginTop:"3px" }}>{item.label}</div>
+                </div>
+              ))}
+            </div>
+            {moodTrend.length>1&&(
+              <div style={{ marginTop:"14px" }}>
+                <div style={{ fontSize:"13px",fontWeight:"600",color:colors.text,marginBottom:"8px" }}>気分の推移</div>
+                <div style={{ display:"flex",alignItems:"flex-end",gap:"4px",height:"50px" }}>
+                  {moodTrend.map(([key,d])=>(
+                    <div key={key} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center" }}>
+                      <div style={{ width:"100%",borderRadius:"3px 3px 0 0",height:`${(d.mood/5)*44}px`,background:MOODS.find(m=>m.value===d.mood)?.color||colors.primary,opacity:0.85 }}/>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display:"flex",justifyContent:"space-between",fontSize:"10px",color:colors.textLight,marginTop:"3px" }}>
+                  <span>{moodTrend[0]?.[0]?.slice(5)}</span><span>{moodTrend[moodTrend.length-1]?.[0]?.slice(5)}</span>
+                </div>
+              </div>
+            )}
+            {medStats.length>0&&(
+              <div style={{ marginTop:"14px" }}>
+                <div style={{ fontSize:"13px",fontWeight:"600",color:colors.text,marginBottom:"8px" }}>💊 服薬状況</div>
+                {medStats.map(m=>{
+                  const rate=m.recorded>0?m.taken/m.recorded:null;
+                  return (
+                    <div key={m.id} style={{ marginBottom:"8px" }}>
+                      <div style={{ display:"flex",justifyContent:"space-between",marginBottom:"3px" }}>
+                        <span style={{ fontSize:"12px",color:colors.text }}>{m.name}</span>
+                        <span style={{ fontSize:"11px",color:colors.textLight }}>
+                          {m.recorded>0?`${m.taken}/${m.recorded}日`:"未記録"}
+                          {m.missed>0&&<span style={{ color:colors.accentWarm }}>　飲めず{m.missed}日</span>}
+                        </span>
+                      </div>
+                      <div style={{ height:"7px",background:colors.border,borderRadius:"4px",overflow:"hidden" }}>
+                        {rate!==null&&<div style={{ height:"100%",width:`${rate*100}%`,background:rate>=0.8?colors.accent:rate>=0.5?"#c8b870":colors.accentWarm,borderRadius:"4px" }}/>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {topSyms.length>0&&(
+            <div style={cardStyle}>
+              <div style={{ fontSize:"14px",fontWeight:"600",color:colors.text,marginBottom:"12px" }}>よくあった症状</div>
+              {topSyms.map(([s,n])=>(
+                <div key={s} style={{ display:"flex",alignItems:"center",gap:"8px",marginBottom:"8px" }}>
+                  <div style={{ height:"8px",borderRadius:"4px",background:colors.primary,width:`${(n/entries.length)*100}%`,minWidth:"12px" }}/>
+                  <span style={{ fontSize:"13px",color:colors.text,whiteSpace:"nowrap" }}>{s}（{n}日）</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {memoEs.length>0&&(
+            <div style={cardStyle}>
+              <div style={{ fontSize:"14px",fontWeight:"600",color:colors.text,marginBottom:"12px" }}>📝 気になったこと・メモ</div>
+              {memoEs.map(([key,d])=>(
+                <div key={key} style={{ marginBottom:"10px" }}>
+                  <div style={{ fontSize:"11px",color:colors.textLight,marginBottom:"3px" }}>{formatDate(key)}</div>
+                  <div style={{ fontSize:"13px",color:colors.text,background:colors.bg,borderRadius:"8px",padding:"8px 10px",lineHeight:"1.6" }}>{d.memo}</div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ ...cardStyle,background:"#f0f7f3",borderColor:colors.accent }}>
+            <div style={{ fontSize:"14px",fontWeight:"600",color:colors.text,marginBottom:"10px" }}>🩺 診察で使えるまとめ文</div>
+            <pre style={{ fontSize:"12px",color:colors.text,lineHeight:"1.9",whiteSpace:"pre-wrap",fontFamily:"inherit",margin:0 }}>{summaryText}</pre>
+            <button onClick={()=>navigator.clipboard?.writeText(summaryText)} style={{ marginTop:"12px",padding:"10px 20px",borderRadius:"20px",border:`1.5px solid ${colors.accent}`,background:"white",color:colors.accent,fontSize:"13px",cursor:"pointer",fontWeight:"600" }}>
+              コピーする
+            </button>
+          </div>
+        </>)}
+      </div>
+    );
+  };
+
+  if (loading) return (
+    <div style={{ display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"100vh",background:"#f5f0f8",gap:"16px" }}>
+      <KoalaTiny size={48}/><div style={{ fontSize:"14px",color:"#7a6e84" }}>読み込み中…</div>
+    </div>
+  );
+
+  return (
+    <div style={{ background:colors.bg,minHeight:"100vh",fontFamily:"'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif" }}>
+      <div style={{ background:"white",borderBottom:`1px solid ${colors.border}`,padding:"10px 20px",display:"flex",alignItems:"center",gap:"10px",position:"sticky",top:0,zIndex:10 }}>
+        <KoalaTiny size={32}/>
+        <div style={{ flex:1 }}>
+          <div style={{ fontSize:"16px",fontWeight:"700",color:colors.text }}>コアラの体調ノート</div>
+          <div style={{ fontSize:"11px",color:colors.textLight }}>{view==="record"?formatDate(todayKey):view==="history"?"過去の記録":"診察まとめ"}</div>
+        </div>
+        <KoalaTiny size={26}/>
+      </div>
+      <div style={{ maxWidth:"500px",margin:"0 auto",padding:"16px 16px 100px" }}>
+        {view==="record"&&<RecordView/>}
+        {view==="history"&&<HistoryView/>}
+        {view==="summary"&&<SummaryView/>}
+      </div>
+      <div style={{ position:"fixed",bottom:0,left:0,right:0,background:"white",borderTop:`1px solid ${colors.border}`,display:"flex",justifyContent:"center",padding:"8px 0 12px" }}>
+        {[{key:"record",icon:"✏️",label:"今日の記録"},{key:"history",icon:"📅",label:"過去の記録"},{key:"summary",icon:"🩺",label:"診察まとめ"}].map(tab=>(
+          <button key={tab.key} onClick={()=>setView(tab.key)} style={{ flex:1,maxWidth:"140px",padding:"6px 4px",border:"none",background:"none",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:"2px" }}>
+            <span style={{ fontSize:"20px" }}>{tab.icon}</span>
+            <span style={{ fontSize:"11px",color:view===tab.key?colors.primary:colors.textLight,fontWeight:view===tab.key?"700":"400" }}>{tab.label}</span>
+            {view===tab.key&&<div style={{ width:"4px",height:"4px",borderRadius:"50%",background:colors.primary }}/>}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+</body>
+</html>
