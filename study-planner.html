@@ -3,824 +3,1052 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>医学学習プランナー</title>
+<title>私のタスク＆計画ツール</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Sans:wght@300;400;500&display=swap');
 
-:root {
-  --bg:#0f1117; --surface:#181c27; --surface2:#1f2437; --border:#2a3050;
-  --accent:#f59e0b; --text:#e2e8f0; --text-muted:#64748b; --text-dim:#94a3b8;
-  --danger:#f87171; --success:#4ade80;
-}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;min-height:100vh;font-size:14px;}
+  :root {
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --surface2: #F0EEE9;
+    --border: #E2DED6;
+    --text: #1C1A17;
+    --text-soft: #6B6560;
+    --text-muted: #A09A93;
+    --accent: #5B8A6F;
+    --accent-light: #EAF2EC;
+    --warn: #C4783A;
+    --warn-light: #FDF3EA;
+    --danger: #B85050;
+    --danger-light: #FCEAEA;
+    --good-day: #5B8A6F;
+    --normal-day: #7A8FB5;
+    --bad-day: #A09A93;
+  }
 
-/* HEADER */
-header{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;}
-.logo{display:flex;align-items:center;gap:10px;}
-.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,#6ee7b7,#a78bfa);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;}
-.logo-text{font-size:14px;font-weight:700;}
-.logo-sub{font-size:10px;color:var(--text-muted);}
-.next-exam{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:5px 13px;font-family:'DM Mono',monospace;font-size:11px;color:var(--accent);display:flex;align-items:center;gap:5px;}
-.save-badge{font-size:10px;color:var(--success);display:flex;align-items:center;gap:4px;opacity:0;transition:opacity .4s;}
-.save-badge.show{opacity:1;}
-.header-right{display:flex;align-items:center;gap:8px;}
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-main{max-width:840px;margin:0 auto;padding:18px 14px 80px;}
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.6;
+  }
 
-/* SECTION TITLES */
-.sec{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text-muted);text-transform:uppercase;margin:26px 0 10px;display:flex;align-items:center;gap:6px;}
-.sec svg{opacity:.6;}
+  /* Header */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
 
-/* CARDS */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+  .logo {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--text);
+  }
 
-/* STATS */
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:13px 15px;}
-.stat-label{font-size:10px;color:var(--text-muted);margin-bottom:4px;display:flex;align-items:center;gap:4px;}
-.stat-value{font-size:20px;font-weight:700;font-family:'DM Mono',monospace;}
-.stat-sub{font-size:9px;color:var(--text-dim);margin-top:2px;}
+  .logo span { color: var(--accent); }
 
-/* INPUTS */
-select,input[type=number],input[type=text],input[type=date]{
-  background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-  color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:13px;
-  padding:6px 10px;outline:none;transition:border-color .15s;
-}
-select:focus,input:focus{border-color:var(--accent);}
-select{flex:1;min-width:110px;}
-input[type=number]{width:70px;}
-input[type=text]{flex:1;min-width:140px;}
-input[type=date]{flex:1;}
-.form-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
 
-/* BUTTONS */
-.btn{background:var(--accent);color:#000;border:none;border-radius:8px;padding:6px 14px;font-weight:700;font-size:13px;cursor:pointer;transition:opacity .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px;}
-.btn:hover{opacity:.85;}
-.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-dim);}
-.btn-ghost:hover{border-color:var(--text-dim);}
-.btn-blue{background:#60a5fa;color:#000;}
-.btn-red{background:transparent;border:1px solid var(--border);color:var(--danger);}
-.btn-red:hover{border-color:var(--danger);}
-.btn-sm{padding:4px 10px;font-size:11px;border-radius:6px;}
-.btn-xs{padding:3px 7px;font-size:10px;border-radius:5px;}
+  .save-badge {
+    font-size: 11px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.4s;
+    white-space: nowrap;
+  }
+  .save-badge.show { opacity: 1; }
 
-/* ALLOCATION */
-.alloc-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:6px;}
-.alloc-bars{display:flex;flex-direction:column;gap:9px;margin-bottom:12px;}
-.alloc-row{display:flex;align-items:center;gap:10px;}
-.alloc-label{font-size:11px;font-weight:600;width:72px;flex-shrink:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-.alloc-sub{font-size:9px;color:var(--text-muted);font-family:'DM Mono',monospace;}
-.alloc-bar-bg{flex:1;height:9px;background:var(--border);border-radius:5px;overflow:hidden;}
-.alloc-bar-fill{height:100%;border-radius:5px;transition:width .5s;}
-.alloc-pct{font-family:'DM Mono',monospace;font-size:10px;color:var(--text-dim);width:32px;text-align:right;flex-shrink:0;}
-.alloc-reason{font-size:10px;color:var(--text-muted);border-top:1px solid var(--border);padding-top:10px;line-height:1.7;}
+  .today-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--text-soft);
+  }
 
-/* TODAY PLAN */
-.plan-input-row{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
-.plan-loading{display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:13px;padding:10px 0;}
-.spinner{width:15px;height:15px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.plan-tasks{display:flex;flex-direction:column;gap:7px;}
-.plan-task{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:11px 13px;display:flex;align-items:flex-start;gap:10px;}
-.plan-task-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
-.plan-task-title{font-size:13px;font-weight:600;margin-bottom:3px;}
-.plan-task-detail{font-size:11px;color:var(--text-muted);line-height:1.5;}
-.plan-task-time{font-family:'DM Mono',monospace;font-size:10px;color:var(--accent);margin-top:3px;}
-.plan-empty{font-size:12px;color:var(--text-muted);padding:10px 0;}
+  .condition-pill {
+    display: flex;
+    gap: 4px;
+  }
 
-/* SUBJECTS GRID */
-.subjects-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-.subject-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
-.subject-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-.subject-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
-.subject-name{font-size:13px;font-weight:700;flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-.subject-tags{display:flex;gap:4px;align-items:center;flex-shrink:0;}
-.tag{font-size:9px;padding:1px 5px;border-radius:4px;border:1px solid var(--border);color:var(--text-muted);}
-.tag-exam{color:var(--accent);border-color:rgba(245,158,11,.4);}
-.subject-exam-row{display:flex;align-items:center;gap:6px;margin-bottom:8px;padding:6px 8px;background:var(--surface2);border-radius:7px;}
-.subject-exam-label{font-size:10px;color:var(--text-muted);flex-shrink:0;display:flex;align-items:center;gap:3px;}
-.subject-exam-input{flex:1;font-size:11px;padding:3px 7px;}
-.subject-exam-days{font-family:'DM Mono',monospace;font-size:10px;flex-shrink:0;white-space:nowrap;}
-.subject-progress-wrap{height:4px;background:var(--border);border-radius:2px;margin-bottom:6px;overflow:hidden;}
-.subject-progress-fill{height:100%;border-radius:2px;transition:width .4s;}
-.progress-label{font-size:9px;color:var(--text-muted);margin-bottom:8px;font-family:'DM Mono',monospace;}
-.topic-list{display:flex;flex-direction:column;gap:4px;}
-.topic-item{display:flex;align-items:center;gap:7px;padding:5px 6px;border-radius:6px;cursor:pointer;transition:background .12s;}
-.topic-item:hover{background:var(--surface2);}
-.topic-check{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;transition:all .15s;}
-.topic-item.done .topic-check{border-color:var(--success);background:var(--success);color:#000;}
-.topic-item.weak .topic-check{border-color:var(--danger);background:var(--danger);color:#fff;}
-.topic-text{font-size:11px;color:var(--text-dim);flex:1;}
-.topic-item.done .topic-text{color:var(--text-muted);text-decoration:line-through;}
-.topic-item.weak .topic-text{color:var(--danger);}
-.topic-weak-btn{font-size:9px;padding:1px 5px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text-muted);cursor:pointer;transition:all .12s;white-space:nowrap;}
-.topic-weak-btn:hover{border-color:var(--danger);color:var(--danger);}
-.topic-item.weak .topic-weak-btn{border-color:var(--success);color:var(--success);}
-.topic-del-btn{font-size:10px;padding:1px 4px;border:none;background:transparent;color:var(--text-muted);cursor:pointer;opacity:.4;}
-.topic-del-btn:hover{opacity:1;color:var(--danger);}
-.add-topic-row{display:flex;gap:5px;margin-top:8px;}
-.add-topic-row input{flex:1;font-size:11px;padding:4px 8px;}
+  .cpill {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: all 0.15s;
+  }
 
-/* SUBJECT SETTINGS */
-.subj-settings-grid{display:flex;flex-direction:column;gap:8px;}
-.subj-setting-row{display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--surface2);border-radius:9px;flex-wrap:wrap;}
-.subj-setting-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0;}
-.subj-setting-name{font-size:13px;font-weight:600;flex:1;min-width:80px;}
-.subj-setting-meta{font-size:10px;color:var(--text-muted);}
-.color-picker{width:32px;height:28px;padding:2px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);cursor:pointer;}
+  .cpill.good { background: var(--accent-light); color: var(--accent); }
+  .cpill.normal { background: #EEF1F8; color: var(--normal-day); }
+  .cpill.bad { background: var(--surface2); color: var(--bad-day); }
+  .cpill.active { border-color: currentColor; font-weight: 700; }
 
-/* EMOJI PICKER */
-.emoji-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:6px;}
-.emoji-btn{background:var(--surface2);border:2px solid transparent;border-radius:7px;font-size:18px;padding:5px;cursor:pointer;transition:all .12s;text-align:center;line-height:1;}
-.emoji-btn:hover{background:var(--border);}
-.emoji-btn.selected{border-color:var(--accent);}
+  /* Layout */
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 16px;
+    display: grid;
+    gap: 20px;
+  }
 
-/* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300;display:flex;align-items:center;justify-content:center;padding:16px;}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px 20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;}
-.modal-title{font-size:15px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:7px;}
-.modal-row{display:flex;flex-direction:column;gap:5px;margin-bottom:12px;}
-.modal-label{font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:4px;}
-.modal-row input,.modal-row select{width:100%;}
-.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;}
+  /* Section card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
 
-/* LOG */
-.log-list{display:flex;flex-direction:column;gap:7px;}
-.log-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 13px;display:flex;align-items:flex-start;gap:10px;}
-.log-icon{font-size:16px;width:24px;text-align:center;flex-shrink:0;margin-top:1px;}
-.log-badge{font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;white-space:nowrap;margin-top:2px;border:1px solid transparent;}
-.log-title{font-size:13px;font-weight:500;}
-.log-meta{font-size:10px;color:var(--text-muted);margin-top:3px;font-family:'DM Mono',monospace;}
-.log-delete{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;padding:0 3px;opacity:.4;transition:opacity .12s;margin-left:auto;}
-.log-delete:hover{opacity:1;color:var(--danger);}
-.empty-state{text-align:center;padding:24px;color:var(--text-muted);font-size:12px;}
+  .card-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
 
-@media(max-width:500px){.subjects-grid{grid-template-columns:1fr;}.stats-row{grid-template-columns:repeat(3,1fr);}}
+  .card-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: 0.2px;
+  }
+
+  .card-body { padding: 16px 20px; }
+
+  /* Task list */
+  .task-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    transition: opacity 0.2s;
+  }
+
+  .task-item:last-child { border-bottom: none; }
+  .task-item.done { opacity: 0.45; }
+  .task-item.done .task-name { text-decoration: line-through; }
+
+  .task-check {
+    width: 20px; height: 20px;
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+    transition: all 0.15s;
+    background: var(--surface);
+  }
+
+  .task-check.checked {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+  }
+
+  .task-check svg { width: 12px; height: 12px; }
+
+  .task-info { flex: 1; min-width: 0; }
+
+  .task-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .task-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .badge {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+
+  .badge.high { background: var(--danger-light); color: var(--danger); }
+  .badge.mid { background: var(--warn-light); color: var(--warn); }
+  .badge.low { background: var(--surface2); color: var(--text-soft); }
+  .badge.deadline { background: var(--surface2); color: var(--text-soft); }
+  .badge.done-b { background: var(--accent-light); color: var(--accent); }
+
+  .task-deadline-warn {
+    font-size: 11px;
+    color: var(--danger);
+    font-weight: 500;
+  }
+
+  .task-actions {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .icon-btn {
+    width: 28px; height: 28px;
+    border: none;
+    background: var(--surface2);
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-soft);
+    font-size: 13px;
+    transition: background 0.15s;
+  }
+  .icon-btn:hover { background: var(--border); }
+  .icon-btn.del:hover { background: var(--danger-light); color: var(--danger); }
+
+  /* Add task form */
+  .add-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 16px 20px;
+    background: var(--surface2);
+    border-top: 1px solid var(--border);
+  }
+
+  .form-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  input[type="text"], input[type="date"], select, textarea {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  input[type="text"]:focus, input[type="date"]:focus, select:focus, textarea:focus {
+    border-color: var(--accent);
+  }
+
+  .input-main { flex: 1; min-width: 160px; }
+
+  .btn {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: white;
+  }
+  .btn-primary:hover { background: #4a7660; }
+
+  .btn-secondary {
+    background: var(--surface2);
+    color: var(--text-soft);
+    border: 1.5px solid var(--border);
+  }
+  .btn-secondary:hover { background: var(--border); }
+
+  /* Plan section */
+  .plan-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+  }
+
+  @media (max-width: 600px) {
+    .plan-grid { grid-template-columns: 1fr; }
+  }
+
+  .plan-col {
+    border-radius: 10px;
+    padding: 14px;
+    border: 1.5px solid transparent;
+  }
+
+  .plan-col.good-col {
+    background: var(--accent-light);
+    border-color: #C2DEC9;
+  }
+  .plan-col.normal-col {
+    background: #EEF1F8;
+    border-color: #CBD3E8;
+  }
+  .plan-col.bad-col {
+    background: var(--surface2);
+    border-color: var(--border);
+  }
+
+  .plan-col-title {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .plan-col.good-col .plan-col-title { color: var(--good-day); }
+  .plan-col.normal-col .plan-col-title { color: var(--normal-day); }
+  .plan-col.bad-col .plan-col-title { color: var(--bad-day); }
+
+  .plan-task {
+    font-size: 12px;
+    padding: 5px 8px;
+    background: rgba(255,255,255,0.7);
+    border-radius: 6px;
+    margin-bottom: 5px;
+    color: var(--text);
+  }
+
+  .plan-time {
+    font-size: 11px;
+    color: var(--text-soft);
+    margin-top: 2px;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 3px;
+    transition: width 0.4s;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    color: var(--text-soft);
+    margin-top: 4px;
+    text-align: right;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  .stat-box {
+    background: var(--surface2);
+    border-radius: 10px;
+    padding: 14px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-soft);
+    font-weight: 500;
+  }
+
+  /* Highlight */
+  .highlight-box {
+    background: var(--accent-light);
+    border: 1px solid #C2DEC9;
+    border-radius: 10px;
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--accent);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .highlight-box .icon { font-size: 18px; flex-shrink: 0; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.3);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 480px;
+    padding: 24px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  }
+
+  .modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .form-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-soft);
+    margin-bottom: 5px;
+    display: block;
+    letter-spacing: 0.3px;
+  }
+
+  .form-group { margin-bottom: 14px; }
+
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 28px 20px;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .empty-state .icon { font-size: 28px; margin-bottom: 8px; }
+
+  /* Tab */
+  .tabs {
+    display: flex;
+    gap: 2px;
+    background: var(--surface2);
+    border-radius: 8px;
+    padding: 3px;
+  }
+
+  .tab {
+    flex: 1;
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+
+  .tab.active {
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 700;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* AI chat */
+  .ai-input-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-end;
+  }
+
+  .ai-input {
+    flex: 1;
+    resize: none;
+    min-height: 40px;
+    max-height: 120px;
+  }
+
+  .ai-messages {
+    max-height: 280px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .ai-msg {
+    padding: 10px 13px;
+    border-radius: 10px;
+    font-size: 13px;
+    line-height: 1.6;
+    max-width: 90%;
+  }
+
+  .ai-msg.user {
+    background: var(--accent);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 3px;
+  }
+
+  .ai-msg.assistant {
+    background: var(--surface2);
+    color: var(--text);
+    align-self: flex-start;
+    border-bottom-left-radius: 3px;
+  }
+
+  .ai-msg.loading { color: var(--text-muted); font-style: italic; }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+  }
+
+  .filter-row {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 14px;
+    border: 1.5px solid var(--border);
+    background: var(--surface);
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .filter-btn.active {
+    background: var(--text);
+    color: var(--surface);
+    border-color: var(--text);
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">
-    <div class="logo-icon">🔬</div>
-    <div>
-      <div class="logo-text">MedStudy Planner</div>
-      <div class="logo-sub" id="headerSub">科目を追加して始めよう</div>
-    </div>
-  </div>
+  <div class="logo">私の<span>タスク</span>＆計画</div>
   <div class="header-right">
     <div class="save-badge" id="saveBadge">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-      自動保存済み
+      保存済み
     </div>
-    <div class="next-exam" id="nextExamBadge">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      <span>次の試験: —</span>
+    <div class="today-status">
+      <span style="font-size:12px;">今日の体調：</span>
+      <div class="condition-pill" id="conditionPill">
+        <button class="cpill good" onclick="setCondition('good')">😊 よい</button>
+        <button class="cpill normal" onclick="setCondition('normal')">😐 普通</button>
+        <button class="cpill bad" onclick="setCondition('bad')">😔 しんどい</button>
+      </div>
     </div>
   </div>
 </header>
 
 <main>
 
-<!-- STATS -->
-<div class="sec">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-  進捗サマリー
-</div>
-<div class="stats-row">
-  <div class="stat-card">
-    <div class="stat-label">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      最短試験まで
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-num" id="statTotal">0</div>
+      <div class="stat-label">タスク合計</div>
     </div>
-    <div class="stat-value" style="color:var(--accent)" id="daysLeft">—</div>
-    <div class="stat-sub">日後</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-      累計記録
+    <div class="stat-box">
+      <div class="stat-num" id="statDone" style="color:var(--accent)">0</div>
+      <div class="stat-label">完了済み</div>
     </div>
-    <div class="stat-value" style="color:#6ee7b7" id="totalSessions">0</div>
-    <div class="stat-sub">セッション</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      累計時間
-    </div>
-    <div class="stat-value" style="color:#a78bfa" id="totalHours">0</div>
-    <div class="stat-sub">時間</div>
-  </div>
-</div>
-
-<!-- ALLOCATION -->
-<div class="sec">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-  推奨学習配分
-</div>
-<div class="card">
-  <div class="alloc-header">
-    <span style="font-size:11px;color:var(--text-dim)">残り日数・苦手トピック・進捗から自動計算</span>
-    <button class="btn btn-ghost btn-sm" onclick="renderAllocation()">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-      再計算
-    </button>
-  </div>
-  <div class="alloc-bars" id="allocBars"><div class="plan-empty">科目を追加すると配分が表示されます。</div></div>
-  <div class="alloc-reason" id="allocReason" style="display:none"></div>
-</div>
-
-<!-- TODAY PLAN -->
-<div class="sec">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-  今日のやること提案
-</div>
-<div class="card">
-  <div class="plan-input-row">
-    <span style="font-size:12px;color:var(--text-dim)">今日の学習時間：</span>
-    <input type="number" id="planHours" min=".5" max="12" step=".5" value="3" style="width:62px">
-    <span style="font-size:11px;color:var(--text-muted)">時間</span>
-    <button class="btn btn-blue" onclick="generatePlan()">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-      AIで提案
-    </button>
-  </div>
-  <div id="planOutput"><div class="plan-empty">上のボタンを押すと今日のスケジュールをAIが提案します。</div></div>
-</div>
-
-<!-- LOG -->
-<div class="sec">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-  学習を記録
-</div>
-<div class="card">
-  <div style="margin-bottom:12px;font-size:12px;color:var(--text-dim)" id="todayDate"></div>
-  <div style="display:flex;flex-direction:column;gap:9px;">
-    <div class="form-row">
-      <select id="logSubject"></select>
-      <input type="number" id="logHours" min=".5" max="12" step=".5" value="1">
-      <span style="font-size:11px;color:var(--text-muted)">時間</span>
-    </div>
-    <div class="form-row">
-      <input type="text" id="logTopic" placeholder="学習した内容（例：炎症の分類）">
-      <button class="btn" onclick="addLog()">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        追加
-      </button>
+    <div class="stat-box">
+      <div class="stat-num" id="statUrgent" style="color:var(--danger)">0</div>
+      <div class="stat-label">急ぎのタスク</div>
     </div>
   </div>
-</div>
 
-<!-- SUBJECTS -->
-<div class="sec">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-  トピック習熟度
-</div>
-<div class="subjects-grid" id="subjectsGrid">
-  <div class="empty-state" style="grid-column:1/-1">下の「設定」から科目を追加してください。</div>
-</div>
-
-<!-- LOG HISTORY -->
-<div class="sec">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-  学習記録
-</div>
-<div class="log-list" id="logList">
-  <div class="empty-state">まだ記録がありません。</div>
-</div>
-
-<!-- SETTINGS -->
-<div class="sec">
-  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 1.41 1.41M4.93 4.93a10 10 0 0 0-1.41 1.41M19.07 19.07a10 10 0 0 0 1.41-1.41M4.93 19.07a10 10 0 0 1-1.41-1.41M22 12h-1M3 12H2M12 22v-1M12 3V2"/></svg>
-  設定 — 科目管理
-</div>
-<div class="card">
-  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-    <span style="font-size:12px;color:var(--text-dim)">科目一覧</span>
-    <button class="btn btn-sm" onclick="openAddSubject()">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      科目を追加
-    </button>
+  <!-- Today's suggestion -->
+  <div class="highlight-box" id="todaySuggestion">
+    <div class="icon">💡</div>
+    <div id="suggestionText">体調を選ぶと、今日おすすめの行動が表示されます。</div>
   </div>
-  <div class="subj-settings-grid" id="subjSettingsGrid">
-    <div class="empty-state">科目がありません。</div>
-  </div>
-  <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-    <div style="display:flex;gap:8px;">
-      <button class="btn btn-ghost btn-sm" onclick="exportData()">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        バックアップ
-      </button>
-      <label class="btn btn-ghost btn-sm" style="cursor:pointer;">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        復元
-        <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-      </label>
+
+  <!-- Task list -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📋 タスク一覧</div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <div class="filter-row" style="margin-bottom:0">
+          <button class="filter-btn active" onclick="filterTasks('all', this)">すべて</button>
+          <button class="filter-btn" onclick="filterTasks('high', this)">🔴 急ぎ</button>
+          <button class="filter-btn" onclick="filterTasks('mid', this)">🟡 普通</button>
+          <button class="filter-btn" onclick="filterTasks('done', this)">✅ 完了</button>
+        </div>
+        <button class="btn btn-primary" onclick="openModal()">＋ 追加</button>
+      </div>
     </div>
-    <button class="btn btn-red btn-sm" onclick="clearAll()">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-      データ全削除
-    </button>
+    <div class="card-body" style="padding:8px 20px;">
+      <div id="taskList"></div>
+    </div>
   </div>
-</div>
+
+  <!-- Plan by condition -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📅 体調別の計画</div>
+    </div>
+    <div class="card-body">
+      <div class="plan-grid">
+        <div class="plan-col good-col">
+          <div class="plan-col-title">😊 調子がよい日</div>
+          <div class="plan-task">
+            <div>課題を進める</div>
+            <div class="plan-time">🕐 60分 × 2セット</div>
+          </div>
+          <div class="plan-task">
+            <div>試験勉強（1科目）</div>
+            <div class="plan-time">🕐 60分</div>
+          </div>
+          <div class="plan-task">
+            <div>ベッド周り片付け</div>
+            <div class="plan-time">🕐 30分</div>
+          </div>
+          <div class="plan-time" style="margin-top:8px;font-size:11px;">合計：最大3時間</div>
+        </div>
+        <div class="plan-col normal-col">
+          <div class="plan-col-title">😐 普通の日</div>
+          <div class="plan-task">
+            <div>課題を少し進める</div>
+            <div class="plan-time">🕐 60分</div>
+          </div>
+          <div class="plan-task">
+            <div>委員の仕事・教習</div>
+            <div class="plan-time">🕐 予定に合わせて</div>
+          </div>
+          <div class="plan-task">
+            <div>料理・家事</div>
+            <div class="plan-time">🕐 無理のない範囲で</div>
+          </div>
+          <div class="plan-time" style="margin-top:8px;font-size:11px;">合計：1〜2時間目安</div>
+        </div>
+        <div class="plan-col bad-col">
+          <div class="plan-col-title">😔 しんどい日</div>
+          <div class="plan-task">
+            <div>休む・回復を優先する</div>
+            <div class="plan-time">今日はそれでOK</div>
+          </div>
+          <div class="plan-task">
+            <div>料理だけ（最低限）</div>
+            <div class="plan-time">🕐 できる範囲で</div>
+          </div>
+          <div class="plan-time" style="margin-top:8px;font-size:11px;">無理しない日も計画のうち</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI assistant -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">🤖 AI相談・計画サポート</div>
+    </div>
+    <div class="card-body">
+      <div class="ai-messages" id="aiMessages">
+        <div class="ai-msg assistant">こんにちは！タスクの整理や計画立て、何でも相談してください。「今週の計画を立てて」「このタスクから始めるべき？」など気軽に聞いてください。</div>
+      </div>
+      <div class="ai-input-row">
+        <textarea class="ai-input" id="aiInput" placeholder="例：今日どのタスクから始めればいい？" rows="1" onkeydown="handleAiKey(event)"></textarea>
+        <button class="btn btn-primary" onclick="sendAiMessage()" id="aiSendBtn">送信</button>
+      </div>
+    </div>
+  </div>
 
 </main>
 
-<!-- ADD SUBJECT MODAL -->
-<div class="modal-overlay" id="modalOverlay" style="display:none" onclick="closeModal(event)">
-  <div class="modal" onclick="event.stopPropagation()">
-    <div class="modal-title">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      科目を追加
+<!-- Add Task Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOverlay(event)">
+  <div class="modal">
+    <div class="modal-title">タスクを追加</div>
+    <div class="form-group">
+      <label class="form-label">タスク名 *</label>
+      <input type="text" class="input-main" id="taskNameInput" placeholder="例：英語の課題" style="width:100%">
     </div>
-    <div class="modal-row">
-      <div class="modal-label">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-        科目名 *
-      </div>
-      <input type="text" id="newSubjName" placeholder="例：生理学、英語論文読解">
-    </div>
-    <div class="modal-row">
-      <div class="modal-label">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        試験あり？
-      </div>
-      <select id="newSubjExam">
-        <option value="1">あり（試験科目として配分を優先）</option>
-        <option value="0">なし（追加学習として低め配分）</option>
+    <div class="form-group">
+      <label class="form-label">カテゴリ</label>
+      <select id="taskCategory" style="width:100%">
+        <option value="勉強">📚 勉強・課題</option>
+        <option value="家事">🏠 家事・生活</option>
+        <option value="通院">🏥 通院・手続き</option>
+        <option value="委員">📋 委員の仕事</option>
+        <option value="教習">🚗 自動車教習</option>
+        <option value="その他">📌 その他</option>
       </select>
     </div>
-    <div class="modal-row">
-      <div class="modal-label">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-        試験日（任意）
-      </div>
-      <input type="date" id="newSubjDate">
+    <div class="form-group">
+      <label class="form-label">優先度</label>
+      <select id="taskPriority" style="width:100%">
+        <option value="high">🔴 高（急ぎ・重要）</option>
+        <option value="mid" selected>🟡 中（普通）</option>
+        <option value="low">🟢 低（余裕があれば）</option>
+      </select>
     </div>
-    <div class="modal-row">
-      <div class="modal-label">🎨 アイコン（絵文字）</div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-        <span id="selectedEmojiPreview" style="font-size:24px;width:36px;text-align:center;background:var(--surface2);border-radius:8px;padding:4px;">🔬</span>
-        <span style="font-size:11px;color:var(--text-muted)">← 選択中のアイコン</span>
-      </div>
-      <div class="emoji-grid" id="emojiGrid"></div>
+    <div class="form-group">
+      <label class="form-label">締め切り（任意）</label>
+      <input type="date" id="taskDeadline" style="width:100%">
     </div>
-    <div class="modal-row">
-      <div class="modal-label">🎨 テーマカラー</div>
-      <input type="color" class="color-picker" id="newSubjColor" value="#6ee7b7" style="width:100%;height:36px;">
+    <div class="form-group">
+      <label class="form-label">メモ（任意）</label>
+      <textarea id="taskNote" placeholder="補足や詳細など" style="width:100%;height:70px;resize:none;"></textarea>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal()">キャンセル</button>
-      <button class="btn btn-sm" onclick="addSubject()">
-        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        追加
-      </button>
+      <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="addTask()">追加する</button>
     </div>
   </div>
 </div>
 
 <script>
-// ─── EMOJI LIST ───
-const EMOJIS = [
-  '🔬','🧬','💊','🧠','🫀','🫁','🦷','🦴','🩺','🏥',
-  '📖','📝','✏️','📚','🗒️','📋','🔭','⚗️','🧪','🧫',
-  '💉','🩻','🩹','🧬','🔩','⚕️','🌡️','🧲','💡','🎯',
-  '🌱','🐛','🦠','🐾','🌊','⚡','🔥','❄️','🌀','✨',
+// ===== DATA =====
+let tasks = [];
+let currentCondition = 'good';
+let currentFilter = 'all';
+
+const TASKS_KEY = 'myTasks';
+const CONDITION_KEY = 'myCondition';
+
+const initialTasks = [
+  { id: 1, name: '課題', category: '勉強', priority: 'high', deadline: offsetDate(10), note: '少し大変そう', done: false },
+  { id: 2, name: '試験勉強（科目①）', category: '勉強', priority: 'high', deadline: offsetDate(14), note: '直近3科目のうち最初の1科目', done: false },
+  { id: 3, name: '試験勉強（科目②）', category: '勉強', priority: 'high', deadline: offsetDate(14), note: '', done: false },
+  { id: 4, name: '試験勉強（科目③）', category: '勉強', priority: 'high', deadline: offsetDate(14), note: '', done: false },
+  { id: 5, name: 'ベッド周りの片付け', category: '家事', priority: 'mid', deadline: '', note: '優先エリア', done: false },
+  { id: 6, name: '委員の仕事', category: '委員', priority: 'mid', deadline: '', note: '', done: false },
+  { id: 7, name: '自動車教習', category: '教習', priority: 'mid', deadline: '', note: '定期的に通う', done: false },
+  { id: 8, name: '料理・食事', category: '家事', priority: 'low', deadline: '', note: '毎日の日課', done: false },
 ];
-let selectedEmoji = '🔬';
 
-function buildEmojiGrid() {
-  const grid = document.getElementById('emojiGrid');
-  grid.innerHTML = EMOJIS.map(e =>
-    `<button class="emoji-btn${e===selectedEmoji?' selected':''}" onclick="selectEmoji('${e}')">${e}</button>`
-  ).join('');
-}
-function selectEmoji(e) {
-  selectedEmoji = e;
-  document.getElementById('selectedEmojiPreview').textContent = e;
-  document.querySelectorAll('.emoji-btn').forEach(b => b.classList.toggle('selected', b.textContent===e));
+function offsetDate(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
 }
 
-// ─── PALETTE ───
-const PALETTE = ['#6ee7b7','#a78bfa','#60a5fa','#fb923c','#f472b6','#facc15','#34d399','#f87171','#38bdf8','#c084fc'];
-let paletteIdx = 0;
+let nextId = 100;
 
-// ─── DEFAULT SUBJECT EMOJIS ───
-const DEFAULT_EMOJIS = { path:'🔬', pharm:'💊', gene:'🧬', extra:'📖' };
+// ===== STORAGE =====
+function loadData() {
+  try {
+    const savedTasks = localStorage.getItem(TASKS_KEY);
+    if (savedTasks) {
+      tasks = JSON.parse(savedTasks);
+      nextId = Math.max(...tasks.map(t => t.id), 99) + 1;
+    } else {
+      tasks = initialTasks;
+    }
+  } catch(e) {
+    tasks = initialTasks;
+  }
 
-// ─── STATE ───
-const STORE_KEY = 'medplanner_v5';
-let state = JSON.parse(localStorage.getItem(STORE_KEY) || 'null') || {
-  subjects: [
-    { key:'path',  label:'病理学', emoji:'🔬', hex:'#6ee7b7', exam:true,  examDate:null, topics:[
-      {id:1,name:'炎症の基礎',status:'none'},{id:2,name:'腫瘍の分類・良悪性',status:'none'},
-      {id:3,name:'壊死・変性',status:'none'},{id:4,name:'循環障害（梗塞・浮腫）',status:'none'},
-      {id:5,name:'免疫疾患・自己免疫',status:'none'},{id:6,name:'感染症の病理',status:'none'},{id:7,name:'修復・再生',status:'none'}
-    ]},
-    { key:'pharm', label:'薬理学', emoji:'💊', hex:'#a78bfa', exam:true,  examDate:null, topics:[
-      {id:101,name:'薬物動態（ADME）',status:'none'},{id:102,name:'自律神経薬',status:'none'},
-      {id:103,name:'循環器薬（降圧・心不全）',status:'none'},{id:104,name:'抗菌薬・抗生物質',status:'none'},
-      {id:105,name:'中枢神経作用薬',status:'none'},{id:106,name:'抗炎症・免疫抑制薬',status:'none'},{id:107,name:'抗がん薬の概要',status:'none'}
-    ]},
-    { key:'gene',  label:'遺伝学', emoji:'🧬', hex:'#60a5fa', exam:true,  examDate:null, topics:[
-      {id:201,name:'メンデル遺伝の法則',status:'none'},{id:202,name:'DNA複製と修復',status:'none'},
-      {id:203,name:'転写・翻訳',status:'none'},{id:204,name:'染色体異常（数・構造）',status:'none'},
-      {id:205,name:'多因子遺伝と疾患',status:'none'},{id:206,name:'遺伝子検査・診断',status:'none'}
-    ]},
-    { key:'extra', label:'追加学習', emoji:'📖', hex:'#fb923c', exam:false, examDate:null, topics:[
-      {id:301,name:'臨床実習予習',status:'none'},{id:302,name:'英語論文読解',status:'none'}
-    ]},
-  ],
-  logs: [],
-};
-let nextId = 500;
+  try {
+    const savedCondition = localStorage.getItem(CONDITION_KEY);
+    if (savedCondition) currentCondition = savedCondition;
+  } catch(e) {}
+}
 
 let _saveBadgeTimer = null;
-function save() {
-  localStorage.setItem(STORE_KEY, JSON.stringify(state));
-  const badge = document.getElementById('saveBadge');
-  badge.classList.add('show');
-  clearTimeout(_saveBadgeTimer);
-  _saveBadgeTimer = setTimeout(() => badge.classList.remove('show'), 2000);
-}
-function subj(key) { return state.subjects.find(s => s.key === key); }
-
-// ─── EXPORT / IMPORT ───
-function exportData() {
-  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const date = new Date().toISOString().slice(0,10);
-  a.href = url; a.download = `medstudy-backup-${date}.json`;
-  a.click(); URL.revokeObjectURL(url);
-}
-function importData(e) {
-  const file = e.target.files[0]; if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      const data = JSON.parse(ev.target.result);
-      if (!data.subjects || !Array.isArray(data.subjects)) throw new Error();
-      if (!confirm('現在のデータをバックアップファイルで上書きします。よろしいですか？')) return;
-      state = data;
-      save();
-      buildSubjectsGrid(); renderAllocation(); renderSubjSettings();
-      refreshLogSubjectSelect(); renderLogs(); renderStats(); renderHeader();
-    } catch { alert('ファイルの読み込みに失敗しました。正しいバックアップファイルを選択してください。'); }
-  };
-  reader.readAsText(file);
-  e.target.value = '';
-}
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-// ─── DAYS UNTIL ───
-function daysUntil(dateStr) {
-  if (!dateStr) return null;
-  const t = new Date(); t.setHours(0,0,0,0);
-  return Math.ceil((new Date(dateStr) - t) / 86400000);
-}
-function nearestExam() {
-  const ds = state.subjects.map(s => daysUntil(s.examDate)).filter(d => d !== null && d >= 0);
-  return ds.length ? Math.min(...ds) : null;
+function saveData() {
+  try {
+    localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
+    localStorage.setItem(CONDITION_KEY, currentCondition);
+    const badge = document.getElementById('saveBadge');
+    badge.classList.add('show');
+    clearTimeout(_saveBadgeTimer);
+    _saveBadgeTimer = setTimeout(() => badge.classList.remove('show'), 1800);
+  } catch(e) {}
 }
 
-// ─── HEADER / STATS ───
-function renderHeader() {
-  const min = nearestExam();
-  const examSubjs = state.subjects.filter(s => s.exam && s.examDate && daysUntil(s.examDate) >= 0);
-  const nearest = examSubjs.sort((a,b)=>daysUntil(a.examDate)-daysUntil(b.examDate))[0];
-  document.getElementById('nextExamBadge').querySelector('span').textContent =
-    nearest ? `次: ${nearest.emoji} ${nearest.label} ${daysUntil(nearest.examDate)}日後` : '試験日未設定';
-  document.getElementById('daysLeft').textContent = min !== null ? min : '—';
-  document.getElementById('headerSub').textContent =
-    state.subjects.map(s => `${s.emoji} ${s.label}`).join('  ') || '科目を追加して始めよう';
+// ===== RENDER =====
+function render() {
+  renderTasks();
+  renderStats();
+  renderSuggestion();
 }
+
 function renderStats() {
-  document.getElementById('totalSessions').textContent = state.logs.length;
-  const h = state.logs.reduce((s,l)=>s+l.hours,0);
-  document.getElementById('totalHours').textContent = h%1===0?h:h.toFixed(1);
+  const total = tasks.length;
+  const done = tasks.filter(t => t.done).length;
+  const urgent = tasks.filter(t => !t.done && t.priority === 'high').length;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statUrgent').textContent = urgent;
 }
 
-// ─── ALLOCATION ───
-function calcAllocation() {
-  const keys = state.subjects.map(s=>s.key);
-  const base = {};
-  keys.forEach(k => {
-    const s = subj(k);
-    base[k] = s.exam ? 28 : 10;
-    base[k] += s.topics.filter(t=>t.status==='weak').length * 6;
-    const days = daysUntil(s.examDate);
-    if (days !== null) {
-      if (days <= 3)       base[k] += s.exam ? 30 : 0;
-      else if (days <= 7)  base[k] += s.exam ? 18 : 0;
-      else if (days <= 14) base[k] += s.exam ? 8  : 0;
-    }
-    const done = s.topics.filter(t=>t.status==='done').length;
-    const pct  = s.topics.length ? done/s.topics.length : 0;
-    base[k] = Math.max(s.exam ? 8 : 3, base[k] * (1 - pct*0.35));
-  });
-  const total = Object.values(base).reduce((a,b)=>a+b,0)||1;
-  const result = {};
-  keys.forEach(k => { result[k] = Math.round(base[k]/total*100); });
-  const sum = Object.values(result).reduce((a,b)=>a+b,0);
-  if (keys.length) result[keys[0]] += (100-sum);
-  return result;
+function renderSuggestion() {
+  const el = document.getElementById('suggestionText');
+  const urgent = tasks.filter(t => !t.done && t.priority === 'high');
+  if (currentCondition === 'good') {
+    const first = urgent[0];
+    el.textContent = first
+      ? `調子がよさそうです。まず「${first.name}」から60分取り組んでみましょう。休憩を挟みながら最大3時間が目安です。`
+      : '急ぎのタスクはありません。余裕があれば中優先のタスクを進めましょう。';
+  } else if (currentCondition === 'normal') {
+    el.textContent = '普通の日は1〜2時間を目安に。課題を少し進めるか、委員の仕事・教習など予定優先で動きましょう。';
+  } else {
+    el.textContent = 'しんどい日は休むことが最優先です。料理など最低限だけでOK。回復が一番大切です。';
+  }
 }
 
-function renderAllocation() {
-  if (!state.subjects.length) {
-    document.getElementById('allocBars').innerHTML = '<div class="plan-empty">科目を追加すると配分が表示されます。</div>';
-    document.getElementById('allocReason').style.display='none';
+function renderTasks() {
+  const list = document.getElementById('taskList');
+  let filtered = tasks;
+  if (currentFilter === 'high') filtered = tasks.filter(t => t.priority === 'high' && !t.done);
+  else if (currentFilter === 'mid') filtered = tasks.filter(t => t.priority === 'mid' && !t.done);
+  else if (currentFilter === 'done') filtered = tasks.filter(t => t.done);
+  else filtered = tasks.filter(t => !t.done).concat(tasks.filter(t => t.done));
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="icon">✅</div>タスクはありません</div>`;
     return;
   }
-  const alloc = calcAllocation();
-  document.getElementById('allocBars').innerHTML = state.subjects.map(s => {
-    const pct = alloc[s.key]||0;
-    const days = daysUntil(s.examDate);
-    const sub = days !== null ? `試験${days}日前` : s.exam ? '試験日未設定' : '試験外';
-    return `<div class="alloc-row">
-      <div style="width:88px;flex-shrink:0">
-        <div class="alloc-label" style="color:${s.hex}">${s.emoji} ${esc(s.label)}</div>
-        <div class="alloc-sub">${sub}</div>
+
+  list.innerHTML = filtered.map(task => {
+    const daysLeft = task.deadline ? daysUntil(task.deadline) : null;
+    const urgentWarn = daysLeft !== null && daysLeft <= 3 && !task.done
+      ? `<span class="task-deadline-warn">⚠ あと${daysLeft}日</span>` : '';
+    const deadlineBadge = task.deadline
+      ? `<span class="badge deadline">📅 ${formatDate(task.deadline)}${daysLeft !== null ? ` (あと${daysLeft}日)` : ''}</span>` : '';
+    const priorityLabel = { high: '🔴 急ぎ', mid: '🟡 普通', low: '🟢 低' }[task.priority];
+    const priorityClass = task.priority;
+
+    return `
+      <div class="task-item ${task.done ? 'done' : ''}" id="task-${task.id}">
+        <div class="task-check ${task.done ? 'checked' : ''}" onclick="toggleTask(${task.id})">
+          ${task.done ? '<svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>' : ''}
+        </div>
+        <div class="task-info">
+          <div class="task-name">${task.name}</div>
+          <div class="task-meta">
+            <span class="badge ${priorityClass}">${priorityLabel}</span>
+            <span class="badge low">${task.category}</span>
+            ${deadlineBadge}
+            ${urgentWarn}
+          </div>
+          ${task.note ? `<div style="font-size:12px;color:var(--text-soft);margin-top:4px;">${task.note}</div>` : ''}
+        </div>
+        <div class="task-actions">
+          <button class="icon-btn del" onclick="deleteTask(${task.id})" title="削除">✕</button>
+        </div>
       </div>
-      <div class="alloc-bar-bg"><div class="alloc-bar-fill" style="width:${pct}%;background:${s.hex}"></div></div>
-      <span class="alloc-pct">${pct}%</span>
-    </div>`;
+    `;
   }).join('');
-
-  const reasons = [];
-  state.subjects.forEach(s => {
-    const w = s.topics.filter(t=>t.status==='weak').length;
-    const d = daysUntil(s.examDate);
-    if (d !== null && d <= 7 && s.exam) reasons.push(`${s.emoji}${s.label}は試験${d}日前のため最優先。`);
-    if (w > 0) reasons.push(`${s.emoji}${s.label}に苦手${w}項目→配分を増加。`);
-  });
-  const doneHigh = state.subjects.filter(s=>{const t=s.topics;return t.length&&t.filter(x=>x.status==='done').length/t.length>=.7;});
-  if (doneHigh.length) reasons.push(`${doneHigh.map(s=>s.emoji+s.label).join('・')}は進捗良好のため比重を低減。`);
-  if (!reasons.length) reasons.push('標準配分です。苦手トピック登録・試験日設定で自動調整されます。');
-  const el = document.getElementById('allocReason');
-  el.textContent = reasons.join(' ');
-  el.style.display = '';
 }
 
-// ─── AI PLAN ───
-async function generatePlan() {
-  const hours = parseFloat(document.getElementById('planHours').value)||3;
-  if (!state.subjects.length) { alert('先に科目を追加してください。'); return; }
-  const alloc = calcAllocation();
-  const topicSummary = state.subjects.map(s => {
-    const weak = s.topics.filter(t=>t.status==='weak').map(t=>t.name);
-    const rem  = s.topics.filter(t=>t.status!=='done').map(t=>t.name);
-    const days = daysUntil(s.examDate);
-    return `【${s.label}】配分${alloc[s.key]}%｜試験まで${days!==null?days+'日':'未設定'}｜未完了:${rem.join('、')||'なし'}｜苦手:${weak.join('、')||'なし'}`;
-  }).join('\n');
-  const subjectKeys = state.subjects.map(s=>`"${s.key}"`).join('|');
-  const prompt = `あなたは医学生の学習コーチです。以下の情報を元に今日の学習計画を提案してください。
-今日の学習可能時間: ${hours}時間
-各科目の状況:
-${topicSummary}
-3〜5項目のタスクリストをJSON形式のみで返してください（前置き・説明文・backtick不要）:
-[{"subject":"${subjectKeys}のいずれか","title":"タスク名（具体的に）","detail":"学習方法や注意点（1〜2文）","minutes":数字}]
-合計minutesを${Math.round(hours*60)}分にしてください。苦手トピック・試験が近い科目を優先してください。`;
-  const out = document.getElementById('planOutput');
-  out.innerHTML = `<div class="plan-loading"><div class="spinner"></div>AIがプランを考えています…</div>`;
+function daysUntil(dateStr) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(dateStr); d.setHours(0,0,0,0);
+  return Math.round((d - today) / 86400000);
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+
+// ===== ACTIONS =====
+function toggleTask(id) {
+  const t = tasks.find(t => t.id === id);
+  if (t) { t.done = !t.done; saveData(); render(); }
+}
+
+function deleteTask(id) {
+  if (confirm('このタスクを削除しますか？')) {
+    tasks = tasks.filter(t => t.id !== id);
+    saveData(); render();
+  }
+}
+
+function setCondition(c) {
+  currentCondition = c;
+  document.querySelectorAll('.cpill').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.cpill.${c}`).classList.add('active');
+  saveData();
+  renderSuggestion();
+}
+
+function filterTasks(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTasks();
+}
+
+// ===== MODAL =====
+function openModal() {
+  document.getElementById('taskNameInput').value = '';
+  document.getElementById('taskCategory').value = '勉強';
+  document.getElementById('taskPriority').value = 'mid';
+  document.getElementById('taskDeadline').value = '';
+  document.getElementById('taskNote').value = '';
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('taskNameInput').focus(), 100);
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function closeModalOverlay(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function addTask() {
+  const name = document.getElementById('taskNameInput').value.trim();
+  if (!name) { alert('タスク名を入力してください'); return; }
+  const task = {
+    id: nextId++,
+    name,
+    category: document.getElementById('taskCategory').value,
+    priority: document.getElementById('taskPriority').value,
+    deadline: document.getElementById('taskDeadline').value,
+    note: document.getElementById('taskNote').value.trim(),
+    done: false,
+  };
+  tasks.unshift(task);
+  saveData(); render(); closeModal();
+}
+
+// ===== AI CHAT =====
+let aiHistory = [];
+
+function handleAiKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAiMessage(); }
+}
+
+async function sendAiMessage() {
+  const input = document.getElementById('aiInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  input.value = '';
+  addAiMessage('user', msg);
+
+  const btn = document.getElementById('aiSendBtn');
+  btn.disabled = true;
+  const loadingEl = addAiMessage('assistant', '考えています…', true);
+
+  const taskSummary = tasks.filter(t => !t.done).map(t =>
+    `・${t.name}（優先度:${t.priority === 'high' ? '高' : t.priority === 'mid' ? '中' : '低'}${t.deadline ? '、締め切り:' + formatDate(t.deadline) : ''}）`
+  ).join('\n');
+
+  const systemPrompt = `あなたは体調の波がある病気を抱えるユーザーのタスク管理・計画サポートAIです。
+ユーザーは計画を立てることが難しく、1日の作業時間は最大3時間が目安です。
+体調は「よい日・普通の日・しんどい日」で変わります。
+今日の体調：${currentCondition === 'good' ? 'よい' : currentCondition === 'normal' ? '普通' : 'しんどい'}
+
+現在のタスク（未完了）：
+${taskSummary || 'なし'}
+
+優しく、具体的に、短く答えてください。無理をさせない提案を心がけてください。`;
+
+  aiHistory.push({ role: 'user', content: msg });
+
   try {
-    const res  = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
-    const data = await res.json();
-    const raw  = data.content.map(c=>c.text||'').join('');
-    const tasks= JSON.parse(raw.replace(/```json|```/g,'').trim());
-    if(!Array.isArray(tasks)||!tasks.length) throw new Error();
-    out.innerHTML = '<div class="plan-tasks">'+tasks.map(t=>{
-      const s = subj(t.subject) || state.subjects[0];
-      const hr= t.minutes>=60?`${Math.floor(t.minutes/60)}時間${t.minutes%60?(t.minutes%60)+'分':''}`:`${t.minutes}分`;
-      return `<div class="plan-task">
-        <div class="plan-task-icon" style="background:${s.hex}22">${s.emoji}</div>
-        <div>
-          <div class="plan-task-title">${esc(t.title)}</div>
-          <div class="plan-task-detail">${esc(t.detail)}</div>
-          <div class="plan-task-time">${esc(s.emoji)} ${esc(s.label)} · ${hr}</div>
-        </div>
-      </div>`;
-    }).join('')+'</div>';
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: aiHistory,
+      }),
+    });
+    const data = await response.json();
+    const reply = data.content?.find(c => c.type === 'text')?.text || 'すみません、うまく答えられませんでした。';
+    aiHistory.push({ role: 'assistant', content: reply });
+    loadingEl.textContent = reply;
+    loadingEl.classList.remove('loading');
   } catch(e) {
-    out.innerHTML = `<div class="plan-empty" style="color:var(--danger)">プランの生成に失敗しました。もう一度お試しください。</div>`;
+    loadingEl.textContent = 'エラーが発生しました。もう一度試してください。';
+    loadingEl.classList.remove('loading');
   }
+
+  btn.disabled = false;
+  scrollAiToBottom();
 }
 
-// ─── LOGS ───
-function refreshLogSubjectSelect() {
-  const sel = document.getElementById('logSubject');
-  const cur = sel.value;
-  sel.innerHTML = state.subjects.map(s=>`<option value="${s.key}"${s.key===cur?' selected':''}>${s.emoji} ${esc(s.label)}</option>`).join('');
-}
-function addLog() {
-  const subject = document.getElementById('logSubject').value;
-  const hours   = parseFloat(document.getElementById('logHours').value)||1;
-  const topic   = document.getElementById('logTopic').value.trim()||'（メモなし）';
-  const s = subj(subject); if(!s) return;
-  const now = new Date();
-  state.logs.unshift({id:Date.now(),subject,hours,topic,hex:s.hex,emoji:s.emoji,label:s.label,
-    date:now.toLocaleDateString('ja-JP',{month:'numeric',day:'numeric'}),
-    time:now.toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'})});
-  document.getElementById('logTopic').value='';
-  save(); renderLogs(); renderStats();
-}
-function deleteLog(id) { state.logs=state.logs.filter(l=>l.id!==id); save(); renderLogs(); renderStats(); }
-function renderLogs() {
-  const c=document.getElementById('logList');
-  if(!state.logs.length){c.innerHTML='<div class="empty-state">まだ記録がありません。</div>';return;}
-  c.innerHTML=state.logs.map(l=>`
-    <div class="log-item">
-      <div class="log-icon">${l.emoji||'📖'}</div>
-      <div style="flex:1">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
-          <span class="log-badge" style="background:${l.hex}22;color:${l.hex};border-color:${l.hex}55">${esc(l.label||l.subject)}</span>
-        </div>
-        <div class="log-title">${esc(l.topic)}</div>
-        <div class="log-meta">${l.date} ${l.time} · ${l.hours}時間</div>
-      </div>
-      <button class="log-delete" onclick="deleteLog(${l.id})" title="削除">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>`).join('');
+function addAiMessage(role, text, loading = false) {
+  const container = document.getElementById('aiMessages');
+  const el = document.createElement('div');
+  el.className = `ai-msg ${role}${loading ? ' loading' : ''}`;
+  el.textContent = text;
+  container.appendChild(el);
+  scrollAiToBottom();
+  return el;
 }
 
-// ─── TOPICS ───
-function addTopic(key) {
-  const inp=document.getElementById(`new_${key}`); if(!inp) return;
-  const name=inp.value.trim(); if(!name) return;
-  const s=subj(key); if(!s) return;
-  s.topics.push({id:nextId++,name,status:'none'});
-  inp.value=''; save(); renderSubject(key); renderAllocation();
-}
-function delTopic(key,id) {
-  const s=subj(key); if(!s) return;
-  s.topics=s.topics.filter(t=>t.id!==id);
-  save(); renderSubject(key); renderAllocation();
-}
-function toggleDone(key,id) {
-  const s=subj(key); if(!s) return;
-  const t=s.topics.find(t=>t.id===id); if(!t) return;
-  t.status=t.status==='done'?'none':'done';
-  save(); renderSubject(key); renderAllocation();
-}
-function toggleWeak(key,id) {
-  const s=subj(key); if(!s) return;
-  const t=s.topics.find(t=>t.id===id); if(!t) return;
-  t.status=t.status==='weak'?'none':'weak';
-  save(); renderSubject(key); renderAllocation();
-}
-function saveExamDate(key) {
-  const s=subj(key); if(!s) return;
-  const val=document.getElementById(`examdate_${key}`)?.value||null;
-  s.examDate=val||null; save(); renderSubject(key); renderHeader(); renderAllocation();
+function scrollAiToBottom() {
+  const c = document.getElementById('aiMessages');
+  c.scrollTop = c.scrollHeight;
 }
 
-function renderSubject(key) {
-  const s=subj(key); if(!s) return;
-  const el=document.getElementById(`subj_${key}`); if(!el) return;
-  const done=s.topics.filter(t=>t.status==='done').length;
-  const pct=s.topics.length?Math.round(done/s.topics.length*100):0;
-  const days=daysUntil(s.examDate);
-  const daysLabel=days!==null?(days>0?`試験${days}日後`:'🔔 試験当日！'):'未設定';
-  const daysColor=days!==null&&days<=7?'var(--danger)':days!==null&&days<=14?'var(--accent)':'var(--text-muted)';
-
-  el.querySelector('.subject-progress-fill').style.width=pct+'%';
-  el.querySelector('.progress-label').textContent=`${done} / ${s.topics.length} 完了 (${pct}%)`;
-  el.querySelector('.subject-exam-days').textContent=daysLabel;
-  el.querySelector('.subject-exam-days').style.color=daysColor;
-  el.querySelector('.topic-list').innerHTML=s.topics.map(t=>`
-    <div class="topic-item ${t.status}" onclick="toggleDone('${key}',${t.id})">
-      <div class="topic-check">${t.status==='done'?'✓':t.status==='weak'?'!':''}</div>
-      <span class="topic-text">${esc(t.name)}</span>
-      <button class="topic-weak-btn" onclick="event.stopPropagation();toggleWeak('${key}',${t.id})">${t.status==='weak'?'✓解決':'苦手'}</button>
-      <button class="topic-del-btn" onclick="event.stopPropagation();delTopic('${key}',${t.id})" title="削除">×</button>
-    </div>`).join('');
-}
-
-function buildSubjectsGrid() {
-  const grid=document.getElementById('subjectsGrid');
-  if(!state.subjects.length){
-    grid.innerHTML='<div class="empty-state" style="grid-column:1/-1">下の「設定」から科目を追加してください。</div>';return;
-  }
-  grid.innerHTML=state.subjects.map(s=>`
-    <div class="subject-card" id="subj_${s.key}">
-      <div class="subject-header">
-        <div class="subject-icon" style="background:${s.hex}22">${s.emoji||'📖'}</div>
-        <div class="subject-name" style="color:${s.hex}">${esc(s.label)}</div>
-        <div class="subject-tags">
-          ${s.exam?'<span class="tag tag-exam">試験</span>':'<span class="tag">試験外</span>'}
-        </div>
-      </div>
-      <div class="subject-exam-row">
-        <span class="subject-exam-label">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          試験日
-        </span>
-        <input type="date" class="subject-exam-input" id="examdate_${s.key}"
-          value="${s.examDate||''}" onchange="saveExamDate('${s.key}')">
-        <span class="subject-exam-days">—</span>
-      </div>
-      <div class="subject-progress-wrap">
-        <div class="subject-progress-fill" style="background:${s.hex};width:0%"></div>
-      </div>
-      <div class="progress-label">0 / 0 完了 (0%)</div>
-      <div class="topic-list"></div>
-      <div class="add-topic-row">
-        <input type="text" id="new_${s.key}" placeholder="トピックを追加...">
-        <button class="btn btn-ghost btn-xs" onclick="addTopic('${s.key}')">
-          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          追加
-        </button>
-      </div>
-    </div>`).join('');
-  state.subjects.forEach(s=>{
-    document.getElementById(`new_${s.key}`)?.addEventListener('keydown',e=>{if(e.key==='Enter')addTopic(s.key);});
-    renderSubject(s.key);
-  });
-}
-
-// ─── SUBJECT SETTINGS PANEL ───
-function renderSubjSettings() {
-  const grid=document.getElementById('subjSettingsGrid');
-  if(!state.subjects.length){grid.innerHTML='<div class="empty-state">科目がありません。</div>';return;}
-  grid.innerHTML=state.subjects.map(s=>`
-    <div class="subj-setting-row">
-      <div class="subj-setting-icon">${s.emoji||'📖'}</div>
-      <div style="flex:1">
-        <div class="subj-setting-name" style="color:${s.hex}">${esc(s.label)}</div>
-        <div class="subj-setting-meta">${s.exam?'📝 試験科目':'📖 試験外'} · トピック${s.topics.length}件</div>
-      </div>
-      <input type="color" class="color-picker" value="${s.hex}" title="カラー変更"
-        oninput="changeSubjColor('${s.key}',this.value)">
-      <button class="btn btn-red btn-xs" onclick="deleteSubject('${s.key}')">
-        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M9 6V4h6v2"/></svg>
-        削除
-      </button>
-    </div>`).join('');
-}
-function changeSubjColor(key, hex) {
-  const s=subj(key); if(!s) return;
-  s.hex=hex; save(); buildSubjectsGrid(); renderAllocation(); renderSubjSettings(); renderHeader();
-}
-function deleteSubject(key) {
-  if(!confirm(`「${subj(key)?.emoji} ${subj(key)?.label}」を削除しますか？`)) return;
-  state.subjects=state.subjects.filter(s=>s.key!==key);
-  save(); buildSubjectsGrid(); renderAllocation(); renderSubjSettings(); refreshLogSubjectSelect(); renderHeader();
-}
-
-// ─── ADD SUBJECT MODAL ───
-function openAddSubject() {
-  selectedEmoji = EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
-  document.getElementById('newSubjName').value='';
-  document.getElementById('newSubjExam').value='1';
-  document.getElementById('newSubjDate').value='';
-  document.getElementById('newSubjColor').value=PALETTE[paletteIdx%PALETTE.length];
-  document.getElementById('selectedEmojiPreview').textContent=selectedEmoji;
-  buildEmojiGrid();
-  document.getElementById('modalOverlay').style.display='flex';
-  setTimeout(()=>document.getElementById('newSubjName').focus(),50);
-}
-function closeModal(e) {
-  if(!e||e.target===document.getElementById('modalOverlay'))
-    document.getElementById('modalOverlay').style.display='none';
-}
-function addSubject() {
-  const label=document.getElementById('newSubjName').value.trim();
-  if(!label){alert('科目名を入力してください。');return;}
-  const hex    =document.getElementById('newSubjColor').value;
-  const exam   =document.getElementById('newSubjExam').value==='1';
-  const examDate=document.getElementById('newSubjDate').value||null;
-  const key    ='subj_'+Date.now();
-  state.subjects.push({key,label,emoji:selectedEmoji,hex,exam,examDate,topics:[]});
-  paletteIdx++;
-  save();
-  document.getElementById('modalOverlay').style.display='none';
-  buildSubjectsGrid(); renderAllocation(); renderSubjSettings(); refreshLogSubjectSelect(); renderHeader();
-}
-
-// ─── CLEAR ALL ───
-function clearAll() {
-  if(!confirm('全データを削除しますか？取り消せません。')) return;
-  localStorage.removeItem(STORE_KEY); location.reload();
-}
-
-// ─── INIT ───
-document.getElementById('todayDate').textContent =
-  new Date().toLocaleDateString('ja-JP',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
-document.getElementById('logTopic').addEventListener('keydown',e=>{if(e.key==='Enter')addLog();});
-document.getElementById('newSubjName').addEventListener('keydown',e=>{if(e.key==='Enter')addSubject();});
-buildEmojiGrid();
-renderHeader();
-renderStats();
-renderLogs();
-refreshLogSubjectSelect();
-buildSubjectsGrid();
-renderAllocation();
-renderSubjSettings();
+// ===== INIT =====
+loadData();
+// Apply saved condition to UI pills
+document.querySelectorAll('.cpill').forEach(el => el.classList.remove('active'));
+document.querySelector(`.cpill.${currentCondition}`).classList.add('active');
+render();
 </script>
 </body>
 </html>
